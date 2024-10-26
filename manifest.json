@@ -1,0 +1,14 @@
+{
+  "name": "Turbo Variable",
+  "id": "1424792120148154073",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [ "figma" ],
+  "ui": "ui.html",
+  "permissions": ["teamlibrary"],
+  "networkAccess": { "allowedDomains": [ "none"]
+  }
+}
