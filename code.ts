@@ -1,37 +1,345 @@
-// This plugin will open a window to prompt the user to enter a number, and
-// it will then create that many rectangles on the screen.
+figma.showUI(__html__, { width: 240, height: 600 });
 
-// This file holds the main code for plugins. Code in this file has access to
-// the *figma document* via the figma global object.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser environment (See https://www.figma.com/plugin-docs/how-plugins-run).
+// Función para cargar variables y estilos
+async function loadAllData() {
+  try {
+    await importRemoteVariables();
 
-// This shows the HTML page in "ui.html".
-figma.showUI(__html__);
+    setTimeout(async () => {
+      const localVariables = await figma.variables.getLocalVariablesAsync('COLOR');
 
-// Calls to "parent.postMessage" from within the HTML page will trigger this
-// callback. The callback will be passed the "pluginMessage" property of the
-// posted message.
-figma.ui.onmessage =  (msg: {type: string, count: number}) => {
-  // One way of distinguishing between different types of messages sent from
-  // your HTML page is to use an object with a "type" property like this.
-  if (msg.type === 'create-shapes') {
-    // This plugin creates rectangles on the screen.
-    const numberOfRectangles = msg.count;
+      //TODO why i have 2 collections?
+      const libraryCollections =
+        await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+      const libraryVariables: LibraryVariablesType[] = [];
+      for (const collection of libraryCollections) {
+        const variablesInCollection = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
+          collection.key
+        );
+        const mapped: LibraryVariablesType = { variables: [], libraryName: collection.libraryName };
+        for (const variable of variablesInCollection) {
+          const awaitedVar = await figma.variables.importVariableByKeyAsync(variable.key);
+          mapped.variables.push(awaitedVar);
+        }
+        libraryVariables.push(mapped);
+      }
 
-    const nodes: SceneNode[] = [];
-    for (let i = 0; i < numberOfRectangles; i++) {
-      const rect = figma.createRectangle();
-      rect.x = i * 150;
-      rect.fills = [{ type: 'SOLID', color: { r: 1, g: 0.5, b: 0 } }];
-      figma.currentPage.appendChild(rect);
-      nodes.push(rect);
-    }
-    figma.currentPage.selection = nodes;
-    figma.viewport.scrollAndZoomIntoView(nodes);
+      const localVariablesWithCollectionName: LibraryVariablesType = {
+        variables: localVariables,
+        libraryName: 'Local'
+      };
+      const allVariables = [localVariablesWithCollectionName, ...libraryVariables];
+      const colorStyles = await figma.getLocalPaintStylesAsync();
+
+      processVariablesInChunks(allVariables, 50, async (variablesData) => {
+        const stylesData = colorStyles.map((style) => ({
+          name: style.name,
+          id: style.id,
+          paints: style.paints // Guardamos los valores de los colores
+        }));
+
+        const VariablesDataGroupedByLibrary = variablesData.reduce(
+          (acc, variable) => {
+            const libraryName = variable.libraryName;
+            if (!acc[libraryName]) {
+              acc[libraryName] = [];
+            }
+            acc[libraryName].push(variable);
+            return acc;
+          },
+          {} as { [key: string]: VariableData[] }
+        );
+
+        figma.ui.postMessage({
+          type: 'all-data',
+          variables: VariablesDataGroupedByLibrary,
+          styles: stylesData
+        });
+      });
+    }, 0);
+  } catch (error) {
+    console.error('Error al cargar los datos:', error);
+    figma.notify('Error al cargar todas las variables y estilos.');
+  }
+}
+
+// Procesar variables en chunks para mejorar el rendimiento
+function processVariablesInChunks(
+  allGroupedVariables: LibraryVariablesType[],
+  chunkSize: number,
+  callback: (variablesData: VariableData[]) => void
+) {
+  const allVariables = allGroupedVariables.flatMap((group) => group.variables);
+  let currentIndex = 0;
+  const variablesData = [] as VariableData[];
+
+  function processNextChunk() {
+    const chunk = allVariables.slice(currentIndex, currentIndex + chunkSize);
+    Promise.all(
+      chunk.map(async (variable) => {
+        const color = await processColorValues(variable);
+
+        variablesData.push({
+          alias: variable.name || 'Sin alias',
+          id: variable.id,
+          color: color,
+          // isAlias: !!variable.variableCollectionId,
+          isRemote: variable.remote,
+          libraryName: allGroupedVariables.find((group) => group.variables.includes(variable))!
+            .libraryName,
+          scopes: variable.scopes || []
+        });
+      })
+    ).then(() => {
+      currentIndex += chunkSize;
+      if (currentIndex < allVariables.length) {
+        setTimeout(processNextChunk, 0);
+      } else {
+        callback(variablesData);
+      }
+    });
   }
 
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
-  figma.closePlugin();
+  processNextChunk();
+}
+
+// Procesar los valores de color, manejando variables alias
+async function processColorValues(variable: Variable) {
+  if (variable.valuesByMode && typeof variable.valuesByMode === 'object') {
+    const modeIds = Object.keys(variable.valuesByMode);
+
+    for (const modeId of modeIds) {
+      const colorValue = variable.valuesByMode[modeId];
+      if (
+        colorValue &&
+        typeof colorValue === 'object' &&
+        'type' in colorValue &&
+        colorValue.type === 'VARIABLE_ALIAS' &&
+        colorValue.id
+      ) {
+        const originalVariable = await figma.variables.getVariableByIdAsync(colorValue.id);
+        if (originalVariable) {
+          const resolvedColor = await resolveColor(originalVariable);
+          if (resolvedColor) return resolvedColor;
+        }
+      } else if (
+        colorValue &&
+        typeof colorValue === 'object' &&
+        'r' in colorValue &&
+        colorValue.r !== undefined &&
+        colorValue.g !== undefined &&
+        colorValue.b !== undefined
+      ) {
+        return { r: colorValue.r, g: colorValue.g, b: colorValue.b };
+      }
+    }
+  }
+  return null;
+}
+
+// Resolver los valores de color para variables alias
+async function resolveColor(variable: Variable) {
+  if (variable.valuesByMode && typeof variable.valuesByMode === 'object') {
+    const modeIds = Object.keys(variable.valuesByMode);
+    if (modeIds.length > 0) {
+      const colorValue = variable.valuesByMode[modeIds[0]];
+      if (
+        colorValue &&
+        typeof colorValue === 'object' &&
+        'r' in colorValue &&
+        colorValue.r !== undefined &&
+        colorValue.g !== undefined &&
+        colorValue.b !== undefined
+      ) {
+        return { r: colorValue.r, g: colorValue.g, b: colorValue.b };
+      }
+    }
+  }
+  return null;
+}
+
+// Importar variables remotas desde las bibliotecas
+async function importRemoteVariables() {
+  try {
+    const libraryCollections =
+      await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+
+    for (const collection of libraryCollections) {
+      const variablesInCollection = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
+        collection.key
+      );
+      for (const variable of variablesInCollection) {
+        if (variable.resolvedType === 'COLOR') {
+          await figma.variables.importVariableByKeyAsync(variable.key);
+        }
+      }
+    }
+    figma.notify('✅ Variables imported correctly.');
+  } catch (error) {
+    console.error('Error when importing remote variables:', error);
+    figma.notify('🚨 Error when importing remote variables.');
+  }
+}
+
+// Recibir mensajes de la UI y aplicar la variable o estilo si es válido
+figma.ui.onmessage = async (msg) => {
+  const nodes = figma.currentPage.selection;
+
+  // Aplicar variables de color (con validación de scopes)
+  if (msg.type === 'apply-color') {
+    const variableId = msg.variableId;
+    const action = msg.action;
+
+    if (nodes.length > 0 && variableId) {
+      try {
+        const variable = await figma.variables.getVariableByIdAsync(variableId);
+        if (!variable) {
+          figma.notify('Error: Could not obtain the variable.');
+          return;
+        }
+
+        let applied = false;
+        for (const node of nodes) {
+          // Aquí sí validamos los scopes para las variables
+          const isValidScope = await isValidScopeForProperty(variable, action, node);
+          if (isValidScope) {
+            applied = true;
+            if (
+              action === 'fill' &&
+              'fills' in node &&
+              Array.isArray(node.fills) &&
+              node.fills.length > 0
+            ) {
+              const fillsCopy = [...node.fills];
+              fillsCopy[0] = figma.variables.setBoundVariableForPaint(
+                fillsCopy[0],
+                'color',
+                variable
+              );
+              node.fills = fillsCopy;
+            } else if (action === 'stroke' && 'strokes' in node) {
+              const strokesCopy = [...node.strokes];
+              strokesCopy[0] = figma.variables.setBoundVariableForPaint(
+                <SolidPaint>strokesCopy[0],
+                'color',
+                variable
+              );
+              node.strokes = strokesCopy;
+            }
+          }
+        }
+
+        if (applied) {
+          figma.notify('✅ Variable applied correctly.');
+        } else {
+          figma.notify('🚫 Scope limitation.');
+        }
+      } catch (error) {
+        console.error('Error when applying the variable:', error);
+        figma.notify('🚨 It was not possible to apply the variable.');
+      }
+    } else {
+      figma.notify('😺 Oops! There is nothing selected.');
+    }
+  }
+
+  // Aplicar estilos de color (sin validación de scopes)
+  if (msg.type === 'apply-style') {
+    const styleId = msg.styleId;
+    const action = msg.action;
+
+    if (nodes.length > 0 && styleId) {
+      try {
+        let applied = false;
+        for (const node of nodes) {
+          // Obtener los valores de color del estilo de forma asíncrona
+          const style = await figma.getStyleByIdAsync(styleId); // Usamos getStyleByIdAsync
+          if (style && 'paints' in style) {
+            const paints = style.paints; // Obtiene los valores de color del estilo
+            if (paints && paints.length > 0) {
+              const paint = paints[0]; // Usamos el primer valor de la lista de colores
+
+              if (
+                action === 'fill' &&
+                'fills' in node &&
+                Array.isArray(node.fills) &&
+                node.fills.length > 0
+              ) {
+                const fillsCopy = [...node.fills];
+                fillsCopy[0] = paint; // Aplicamos el color del estilo al fill
+                node.fills = fillsCopy;
+                applied = true;
+              } else if (action === 'stroke' && 'strokes' in node) {
+                const strokesCopy = [...node.strokes];
+                strokesCopy[0] = paint; // Aplicamos el color del estilo al stroke
+                node.strokes = strokesCopy;
+                applied = true;
+              }
+            }
+          }
+        }
+
+        if (applied) {
+          figma.notify('✅ Style correctly applied.');
+        } else {
+          figma.notify('🚫 The style could not be applied.');
+        }
+      } catch (error) {
+        console.error('Error when applying the style:', error);
+        figma.notify('🚨 The style could not be applied.');
+      }
+    } else {
+      figma.notify('😺 Oops! There is nothing selected.');
+    }
+  }
 };
+
+// Validar si la variable es compatible con la acción y el tipo de nodo
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function isValidScopeForProperty(variable: Variable, action: any, node: SceneNode) {
+  const { scopes } = variable;
+
+  // TODO - find another way to get aliasOfVariableId
+  // if (variable.aliasOfVariableId) {
+  //   variable = await figma.variables.getVariableByIdAsync(variable.aliasOfVariableId);
+  // }
+
+  if (scopes.includes('ALL_SCOPES')) {
+    return true;
+  }
+
+  if (action === 'fill' && 'fills' in node) {
+    if (scopes.includes('ALL_FILLS')) return true;
+    if (scopes.includes('FRAME_FILL') && node.type === 'FRAME') return true;
+    if (
+      scopes.includes('SHAPE_FILL') &&
+      ['RECTANGLE', 'ELLIPSE', 'POLYGON', 'STAR'].includes(node.type)
+    )
+      return true;
+    return scopes.includes('TEXT_FILL') && node.type === 'TEXT';
+  }
+
+  if (action === 'stroke' && 'strokes' in node) {
+    return scopes.includes('STROKE_COLOR');
+  }
+
+  return false;
+}
+
+// Cargar los datos al iniciar el plugin
+loadAllData();
+
+interface VariableData {
+  alias: string;
+  id: string;
+  color: { r: number; g: number; b: number } | null;
+  isAlias?: boolean;
+  isRemote: boolean;
+  scopes: string[];
+  libraryName: string;
+}
+
+interface LibraryVariablesType {
+  libraryName: string;
+  variables: Variable[];
+}
