@@ -6,17 +6,38 @@ async function loadAllData() {
     await importRemoteVariables();
 
     setTimeout(async () => {
-      const localVariables = await figma.variables.getLocalVariablesAsync('COLOR');
+      const collections = await figma.variables.getLocalVariableCollectionsAsync();
+      const localEnrichedVariables: VariablesWithMetaInfoType[] = [];
 
-      //TODO why i have 2 collections?
+      for (const collection of collections) {
+        const localVariables = [];
+
+        for (const variable of collection.variableIds) {
+          const awaitedVar = await figma.variables.getVariableByIdAsync(variable);
+
+          if (awaitedVar?.resolvedType !== 'COLOR') continue;
+          localVariables.push(awaitedVar);
+        }
+
+        localEnrichedVariables.push({
+          variables: localVariables,
+          libraryName: 'Local',
+          collectionName: collection.name
+        });
+      }
+
       const libraryCollections =
         await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
-      const libraryVariables: LibraryVariablesType[] = [];
+      const libraryVariables: VariablesWithMetaInfoType[] = [];
       for (const collection of libraryCollections) {
         const variablesInCollection = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
           collection.key
         );
-        const mapped: LibraryVariablesType = { variables: [], libraryName: collection.libraryName };
+        const mapped: VariablesWithMetaInfoType = {
+          variables: [],
+          libraryName: collection.libraryName,
+          collectionName: collection.name
+        };
         for (const variable of variablesInCollection) {
           const awaitedVar = await figma.variables.importVariableByKeyAsync(variable.key);
           mapped.variables.push(awaitedVar);
@@ -24,11 +45,7 @@ async function loadAllData() {
         libraryVariables.push(mapped);
       }
 
-      const localVariablesWithCollectionName: LibraryVariablesType = {
-        variables: localVariables,
-        libraryName: 'Local'
-      };
-      const allVariables = [localVariablesWithCollectionName, ...libraryVariables];
+      const allVariables = [...localEnrichedVariables, ...libraryVariables];
       const colorStyles = await figma.getLocalPaintStylesAsync();
 
       processVariablesInChunks(allVariables, 50, async (variablesData) => {
@@ -38,21 +55,9 @@ async function loadAllData() {
           paints: style.paints // Guardamos los valores de los colores
         }));
 
-        const VariablesDataGroupedByLibrary = variablesData.reduce(
-          (acc, variable) => {
-            const libraryName = variable.libraryName;
-            if (!acc[libraryName]) {
-              acc[libraryName] = [];
-            }
-            acc[libraryName].push(variable);
-            return acc;
-          },
-          {} as { [key: string]: VariableData[] }
-        );
-
         figma.ui.postMessage({
           type: 'all-data',
-          variables: VariablesDataGroupedByLibrary,
+          variables: variablesData,
           styles: stylesData
         });
       });
@@ -65,7 +70,7 @@ async function loadAllData() {
 
 // Procesar variables en chunks para mejorar el rendimiento
 function processVariablesInChunks(
-  allGroupedVariables: LibraryVariablesType[],
+  allGroupedVariables: VariablesWithMetaInfoType[],
   chunkSize: number,
   callback: (variablesData: VariableData[]) => void
 ) {
@@ -87,7 +92,9 @@ function processVariablesInChunks(
           isRemote: variable.remote,
           libraryName: allGroupedVariables.find((group) => group.variables.includes(variable))!
             .libraryName,
-          scopes: variable.scopes || []
+          scopes: variable.scopes || [],
+          collectionName: allGroupedVariables.find((group) => group.variables.includes(variable))!
+            .collectionName
         });
       })
     ).then(() => {
@@ -337,9 +344,11 @@ interface VariableData {
   isRemote: boolean;
   scopes: string[];
   libraryName: string;
+  collectionName: string;
 }
 
-interface LibraryVariablesType {
+interface VariablesWithMetaInfoType {
   libraryName: string;
+  collectionName: string;
   variables: Variable[];
 }
