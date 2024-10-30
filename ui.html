@@ -72,53 +72,6 @@
             max-width: 200px;
             text-align: center;
         }
-
-        .collection-selector-wrapper{
-          margin-left: 16px;
-          margin-right: 16px;
-          display: flex;
-          align-items: center;
-          font-size: 12px;
-          margin-bottom: 8px;
-          padding: 0px;
-          padding-top:0px;
-          padding-bottom:0px;
-          border: 1px solid #E6E6E6;
-          border-radius: 8px;
-          cursor: default;
-          color: #333;
-        }
-        .collection-selector{
-          display: flex;
-          align-items: center;
-          padding-left: 8px;
-          padding-top: 4px;
-          background-color: #fff;
-          border-radius: 8px;
-        }
-
-        .collection-options-list{
-          border-radius:8px;
-          width: 180px;
-          transform: translateY(100px);
-          gap: 4px;
-          padding: 4px;
-          /*Can override the background color that appears in the inspector :(*/
-          background-color: #9a0404e5;
-        }
-
-        .collection-option{
-          padding: 4px;
-          border-radius: 4px;
-          
-        }
-
-        .collection-option:hover{
-          padding: 4px;
-          background-color: #0d99ff;
-          
-        }
-
         .content-wrapper {
             flex-grow: 1;
             overflow-y: auto;
@@ -294,25 +247,59 @@
             display: block;
         }
 
-        .collection-selector-wrapper {
-            position: relative;
+        .collection-selector-wrapper{
+          position:relative;
+          margin-left: 16px;
+          margin-right: 16px;
+          display: flex;
+          align-items: center;
+          font-size: 12px;
+          margin-bottom: 8px;
+          padding-top:4px;
+          padding-bottom:4px;
+          border: 1px solid #E6E6E6;
+          border-radius: 8px;
+          cursor: default;
+          color: #333;
         }
 
-        .collection-selector {
-            width: 100%;
-            height: 24px;
+        .collection-selector{
+          display: flex;
+          align-items: center;
+          padding-left: 8px;
+          padding-top: 4px;
+          background-color: #fff;
+          border-radius: 8px;
         }
-
+        
         .collection-options-list {
             position: absolute;
             width: 100%;
-            background-color: #fff;
+            background-color: #1e1e1e;
             border: 1px solid #E6E6E6;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             display: none;
             flex-direction: column;
+            transform: translateY(72px);
+            gap: 4px;
+            padding: 4px;
+            color:#fff;
+           
+        }
+        .collection-option{
+          padding-left:16px;
+          border-radius: 4px;
+          font-weight: 300;
+          font-size: 12px;
+          line-height: 24px;
+          
+        }
+
+        .collection-option:hover{
+          background-color: #0d99ff;
+          
         }
     </style>
 </head>
