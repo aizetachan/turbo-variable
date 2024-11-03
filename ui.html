@@ -72,6 +72,7 @@
             max-width: 200px;
             text-align: center;
         }
+
         .content-wrapper {
             flex-grow: 1;
             overflow-y: auto;
@@ -113,35 +114,35 @@
             color: #c9c9c9;
         }
 
-        .library-header{
-          gap: 10px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          padding-bottom: 12px;
-          padding-top: 4px;
-          display: flex;
-          gap: 2px;
-          align-items: baseline;
+        .library-header {
+            gap: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-bottom: 12px;
+            padding-top: 4px;
+            display: flex;
+            gap: 2px;
+            align-items: baseline;
         }
-        .lib-group{
-          max-width: 84%;
-          font-size: 12px;
-          font-weight: 500;
-          color: #757575;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+
+        .lib-group {
+            max-width: 84%;
+            font-size: 12px;
+            font-weight: 500;
+            color: #757575;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
 
         }
 
-        .lib-name{
-          width: 40px;
-          font-size: 10px;
-          font-weight: 400;
-          font-style: italic;
-          color: #C5C5C5;
-          max-width: 10px;
-          
+        .lib-name {
+            width: 40px;
+            font-size: 10px;
+            font-weight: 400;
+            font-style: italic;
+            color: #C5C5C5;
+            max-width: 10px;
 
 
         }
@@ -151,7 +152,7 @@
             width: 100%;
             margin-top: 0;
             padding-bottom: 16px;
-            
+
         }
 
         /*TODO REMOVE?. NOT USED.*/
@@ -247,59 +248,83 @@
             display: block;
         }
 
-        .collection-selector-wrapper{
-          position:relative;
-          margin-left: 16px;
-          margin-right: 16px;
-          display: flex;
-          align-items: center;
-          font-size: 12px;
-          margin-bottom: 8px;
-          padding-top:4px;
-          padding-bottom:4px;
-          border: 1px solid #E6E6E6;
-          border-radius: 8px;
-          cursor: default;
-          color: #333;
+        .collection-selector-wrapper {
+            position: relative;
+            margin-left: 16px;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 8px;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            border: 1px solid #E6E6E6;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #333;
         }
 
-        .collection-selector{
-          display: flex;
-          align-items: center;
-          padding-left: 8px;
-          padding-top: 4px;
-          background-color: #fff;
-          border-radius: 8px;
+        .down-chevron {
+            margin-right: 8px;
+            width: 8px;
+            height: 8px;
+            transition: transform 0.15s;
         }
-        
+
+        .rotated {
+            transform: rotate(180deg);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .collection-selector {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 8px;
+            padding-top: 4px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+
         .collection-options-list {
             position: absolute;
-            width: 100%;
+            cursor: pointer;
+            left: -2px;
+            top: -42px;
+            width: 199px;
             background-color: #1e1e1e;
             border: 1px solid #E6E6E6;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             z-index: 1000;
-            display: none;
+            display: flex;
             flex-direction: column;
             transform: translateY(72px);
             gap: 4px;
             padding: 4px;
-            color:#fff;
-           
-        }
-        .collection-option{
-          padding-left:16px;
-          border-radius: 4px;
-          font-weight: 300;
-          font-size: 12px;
-          line-height: 24px;
-          
+            color: #fff;
         }
 
-        .collection-option:hover{
-          background-color: #0d99ff;
-          
+        .selected-collection {
+            user-select: none;
+        }
+
+        .collection-option {
+            padding-left: 16px;
+            border-radius: 4px;
+            font-weight: 300;
+            font-size: 12px;
+            line-height: 24px;
+
+        }
+
+        .collection-option:hover {
+            background-color: #0d99ff;
+
         }
     </style>
 </head>
@@ -309,11 +334,15 @@
     <div class="tab disabled" id="tab-estilos" data-tooltip="Coming soon">Styles</div>
 </div>
 
-<div class="collection-selector-wrapper">
-    <div id="collectionOptionsList" class="collection-options-list">
+<div id="customCollectionSelector" class="collection-selector-wrapper">
+    <div id="collectionOptionsList" class="collection-options-list hidden">
     </div>
-    <div id="customCollectionSelector" class="collection-selector">
+    <div class="collection-selector">
         <span id="selectedCollection" class="selected-collection">All collections</span>
+        <svg id="chevron" fill="#000000" xmlns="http://www.w3.org/2000/svg" class="down-chevron"
+             viewBox="0 0 407.437 407.437" xml:space="preserve">
+            <polygon points="386.258,91.567 203.718,273.512 21.179,91.567 0,112.815 203.718,315.87 407.437,112.815 "/>
+        </svg>
     </div>
 </div>
 
@@ -467,7 +496,7 @@
                     const groupIsPresent = group.length > 1;
                     // groupName is everything except the last element or 'General' if there is no group
                     const groupName = groupIsPresent ? group.slice(0, -1).join('/') : 'General';
-                    if(!acc?.[groupName]){
+                    if (!acc?.[groupName]) {
                         acc[groupName] = [];
                     }
                     acc[groupName].push(variable);
@@ -475,7 +504,7 @@
                     return acc;
                 }, {});
 
-                Object.entries(libraryVariablesSplitByGroup).forEach(([group,variables])=>{
+                Object.entries(libraryVariablesSplitByGroup).forEach(([group, variables]) => {
                     const libraryHeader = document.createElement('div');
                     libraryHeader.className = 'library-header';
 
@@ -487,7 +516,7 @@
                     libraryGroupSpan.className = 'lib-group';
                     libraryGroupSpan.textContent = group;
 
-                    if( group !== 'General') {
+                    if (group !== 'General') {
                         libraryHeader.appendChild(libraryGroupSpan);
                     }
                     libraryHeader.appendChild(libraryNameSpan);
@@ -644,25 +673,30 @@
         const collectionSelector = document.getElementById('customCollectionSelector');
         const optionsList = document.getElementById('collectionOptionsList');
         const selectedOption = document.getElementById('selectedCollection');
+        const chevron = document.getElementById('chevron');
         // show options list
+
+        const handleHideOptions = () => {
+            optionsList.classList.add('hidden');
+            chevron.classList.remove('rotated');
+        }
 
         collectionSelector.addEventListener('click', (e) => {
             e.stopPropagation();
-            optionsList.style.display = 'flex';
-            createClickAwayListener(collectionSelector, () => {
-                optionsList.style.display = 'none';
-            });
+            chevron.classList.toggle('rotated');
+            optionsList.classList.toggle('hidden');
+            createClickAwayListener(collectionSelector, handleHideOptions);
         });
 
         // create all collection option
         const optionSpan = document.createElement('span');
         optionSpan.className = 'collection-option';
         optionSpan.textContent = 'All collections';
-        optionSpan.addEventListener('click', () => {
+        optionSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
             renderVariables(variablesData);
             selectedOption.textContent = 'All collections';
-            //close options list
-            optionsList.style.display = 'none';
+            handleHideOptions();
         });
         optionsList.appendChild(optionSpan);
 
@@ -670,18 +704,18 @@
             const spanOption = document.createElement('span');
             spanOption.className = 'collection-option';
             spanOption.textContent = collectionName;
-            spanOption.addEventListener('click', () => {
+            spanOption.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const filteredVariables = variablesData.filter(v => v.collectionName === collectionName);
                 renderVariables(filteredVariables);
                 selectedOption.textContent = collectionName;
-                //close options list
-                optionsList.style.display = 'none';
+                handleHideOptions();
             });
             optionsList.appendChild(spanOption);
         });
     }
 
-    function createClickAwayListener(element, callback){
+    function createClickAwayListener(element, callback) {
         document.addEventListener('click', (e) => {
             if (!element.contains(e.target)) {
                 callback();
