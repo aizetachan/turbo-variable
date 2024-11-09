@@ -182,7 +182,6 @@ function importRemoteVariables() {
 // Recibir mensajes de la UI y aplicar la variable o estilo si es válido
 figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
     const nodes = figma.currentPage.selection;
-    console.log('Message received:', msg);
     // Aplicar variables de color (con validación de scopes)
     if (msg.type === 'apply-color') {
         const variableId = msg.variableId;
@@ -208,8 +207,19 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
                             fillsCopy[0] = figma.variables.setBoundVariableForPaint(fillsCopy[0], 'color', variable);
                             node.fills = fillsCopy;
                         }
-                        else if (action === 'stroke' && 'strokes' in node) {
+                        else if (action === 'stroke' && 'strokes' in node && Array.isArray(node.strokes)) {
                             const strokesCopy = [...node.strokes];
+                            // Check if stroke is present and is a solid paint
+                            if (strokesCopy.length === 0 || strokesCopy[0].type !== 'SOLID') {
+                                const newStrokePaint = {
+                                    type: 'SOLID',
+                                    color: { r: 0, g: 0, b: 0 }, // just base color
+                                    opacity: 1,
+                                    visible: true,
+                                    blendMode: 'NORMAL'
+                                };
+                                strokesCopy[0] = newStrokePaint;
+                            }
                             strokesCopy[0] = figma.variables.setBoundVariableForPaint(strokesCopy[0], 'color', variable);
                             node.strokes = strokesCopy;
                         }

@@ -230,8 +230,19 @@ figma.ui.onmessage = async (msg) => {
                 variable
               );
               node.fills = fillsCopy;
-            } else if (action === 'stroke' && 'strokes' in node) {
+            } else if (action === 'stroke' && 'strokes' in node && Array.isArray(node.strokes)) {
               const strokesCopy = [...node.strokes];
+
+              // Check if stroke is present and is a solid paint
+              if (strokesCopy.length === 0 || strokesCopy[0].type !== 'SOLID') {
+                strokesCopy[0] = {
+                  type: 'SOLID',
+                  color: { r: 0, g: 0, b: 0 }, // just base color
+                  opacity: 1,
+                  visible: true,
+                  blendMode: 'NORMAL'
+                };
+              }
               strokesCopy[0] = figma.variables.setBoundVariableForPaint(
                 <SolidPaint>strokesCopy[0],
                 'color',
