@@ -515,9 +515,6 @@
 						renderVariables(selectedVariables);
 						renderStyles(stylesData);
 						renderSelectorForCollections(collectionNames);
-
-						// Añadir eventos de tooltip después de renderizar
-						addTooltipEvents();
 				}
 		};
 
@@ -540,9 +537,6 @@
 						const filteredStyles = stylesData.filter(s => s.name.toLowerCase().includes(filterValue));
 						renderStyles(filteredStyles);
 				}
-
-				// Asegúrate de que los tooltips se añadan después de filtrar
-				addTooltipEvents();
 		});
 
 		// Renderizar variables de color
@@ -669,6 +663,7 @@
 								})
 						});
 				}
+				addTooltipEvents();
 		}
 
 		// Renderizar estilos de color
@@ -742,6 +737,7 @@
 								colorList.appendChild(colorRow);
 						});
 				}
+				addTooltipEvents();
 		}
 
 		function renderSelectorForCollections(collectionNames) {
