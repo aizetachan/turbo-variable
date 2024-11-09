@@ -13,93 +13,98 @@ figma.showUI(__html__, { width: 240, height: 600 });
 function loadAllData() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            figma.ui.postMessage({ type: 'loading-start' });
             yield importRemoteVariables();
-            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-                const collections = yield figma.variables.getLocalVariableCollectionsAsync();
-                const localEnrichedVariables = [];
-                for (const collection of collections) {
-                    const localVariables = [];
-                    for (const variable of collection.variableIds) {
-                        const awaitedVar = yield figma.variables.getVariableByIdAsync(variable);
-                        if ((awaitedVar === null || awaitedVar === void 0 ? void 0 : awaitedVar.resolvedType) !== 'COLOR')
-                            continue;
-                        localVariables.push(awaitedVar);
-                    }
-                    localEnrichedVariables.push({
-                        variables: localVariables,
-                        libraryName: 'Local',
-                        collectionName: collection.name
-                    });
+            const collections = yield figma.variables.getLocalVariableCollectionsAsync();
+            const localEnrichedVariables = [];
+            for (const collection of collections) {
+                const localVariables = [];
+                for (const variable of collection.variableIds) {
+                    const awaitedVar = yield figma.variables.getVariableByIdAsync(variable);
+                    if ((awaitedVar === null || awaitedVar === void 0 ? void 0 : awaitedVar.resolvedType) !== 'COLOR')
+                        continue;
+                    localVariables.push(awaitedVar);
                 }
-                const libraryCollections = yield figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
-                const libraryVariables = [];
-                for (const collection of libraryCollections) {
-                    const variablesInCollection = yield figma.teamLibrary.getVariablesInLibraryCollectionAsync(collection.key);
-                    const mapped = {
-                        variables: [],
-                        libraryName: collection.libraryName,
-                        collectionName: collection.name
-                    };
-                    for (const variable of variablesInCollection) {
-                        const awaitedVar = yield figma.variables.importVariableByKeyAsync(variable.key);
-                        mapped.variables.push(awaitedVar);
-                    }
-                    libraryVariables.push(mapped);
+                localEnrichedVariables.push({
+                    variables: localVariables,
+                    libraryName: 'Local',
+                    collectionName: collection.name
+                });
+            }
+            const libraryCollections = yield figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+            const libraryVariables = [];
+            for (const collection of libraryCollections) {
+                const variablesInCollection = yield figma.teamLibrary.getVariablesInLibraryCollectionAsync(collection.key);
+                const mapped = {
+                    variables: [],
+                    libraryName: collection.libraryName,
+                    collectionName: collection.name
+                };
+                for (const variable of variablesInCollection) {
+                    const awaitedVar = yield figma.variables.importVariableByKeyAsync(variable.key);
+                    mapped.variables.push(awaitedVar);
                 }
-                const allVariables = [...localEnrichedVariables, ...libraryVariables];
-                const colorStyles = yield figma.getLocalPaintStylesAsync();
-                processVariablesInChunks(allVariables, 50, (variablesData) => __awaiter(this, void 0, void 0, function* () {
-                    const stylesData = colorStyles.map((style) => ({
-                        name: style.name,
-                        id: style.id,
-                        paints: style.paints // Guardamos los valores de los colores
-                    }));
-                    figma.ui.postMessage({
-                        type: 'all-data',
-                        variables: variablesData,
-                        styles: stylesData
-                    });
+                libraryVariables.push(mapped);
+            }
+            const allVariables = [...localEnrichedVariables, ...libraryVariables];
+            const colorStyles = yield figma.getLocalPaintStylesAsync();
+            yield processVariablesInChunks(allVariables, 50, (variablesData) => __awaiter(this, void 0, void 0, function* () {
+                const stylesData = colorStyles.map((style) => ({
+                    name: style.name,
+                    id: style.id,
+                    paints: style.paints
                 }));
-            }), 0);
+                figma.ui.postMessage({
+                    type: 'all-data',
+                    variables: variablesData,
+                    styles: stylesData
+                });
+            }));
+            figma.ui.postMessage({ type: 'loading-end' });
         }
         catch (error) {
             console.error('Error al cargar los datos:', error);
             figma.notify('Error al cargar todas las variables y estilos.');
+            figma.ui.postMessage({ type: 'loading-end' });
         }
     });
 }
 // Procesar variables en chunks para mejorar el rendimiento
 function processVariablesInChunks(allGroupedVariables, chunkSize, callback) {
-    const allVariables = allGroupedVariables.flatMap((group) => group.variables);
-    let currentIndex = 0;
-    const variablesData = [];
-    function processNextChunk() {
-        const chunk = allVariables.slice(currentIndex, currentIndex + chunkSize);
-        Promise.all(chunk.map((variable) => __awaiter(this, void 0, void 0, function* () {
-            const color = yield processColorValues(variable);
-            variablesData.push({
-                alias: variable.name || 'Sin alias',
-                id: variable.id,
-                color: color,
-                // isAlias: !!variable.variableCollectionId,
-                isRemote: variable.remote,
-                libraryName: allGroupedVariables.find((group) => group.variables.includes(variable))
-                    .libraryName,
-                scopes: variable.scopes || [],
-                collectionName: allGroupedVariables.find((group) => group.variables.includes(variable))
-                    .collectionName
-            });
-        }))).then(() => {
-            currentIndex += chunkSize;
-            if (currentIndex < allVariables.length) {
-                setTimeout(processNextChunk, 0);
-            }
-            else {
-                callback(variablesData);
-            }
-        });
-    }
-    processNextChunk();
+    return new Promise((resolve, reject) => {
+        const allVariables = allGroupedVariables.flatMap((group) => group.variables);
+        let currentIndex = 0;
+        const variablesData = [];
+        function processNextChunk() {
+            const chunk = allVariables.slice(currentIndex, currentIndex + chunkSize);
+            Promise.all(chunk.map((variable) => __awaiter(this, void 0, void 0, function* () {
+                const color = yield processColorValues(variable);
+                variablesData.push({
+                    alias: variable.name || 'Sin alias',
+                    id: variable.id,
+                    color: color,
+                    isRemote: variable.remote,
+                    libraryName: allGroupedVariables.find((group) => group.variables.includes(variable))
+                        .libraryName,
+                    scopes: variable.scopes || [],
+                    collectionName: allGroupedVariables.find((group) => group.variables.includes(variable))
+                        .collectionName
+                });
+            })))
+                .then(() => {
+                currentIndex += chunkSize;
+                if (currentIndex < allVariables.length) {
+                    setTimeout(processNextChunk, 0);
+                }
+                else {
+                    callback(variablesData);
+                    resolve();
+                }
+            })
+                .catch(reject);
+        }
+        processNextChunk();
+    });
 }
 // Procesar los valores de color, manejando variables alias
 function processColorValues(variable) {
@@ -177,6 +182,7 @@ function importRemoteVariables() {
 // Recibir mensajes de la UI y aplicar la variable o estilo si es válido
 figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
     const nodes = figma.currentPage.selection;
+    console.log('Message received:', msg);
     // Aplicar variables de color (con validación de scopes)
     if (msg.type === 'apply-color') {
         const variableId = msg.variableId;
@@ -272,6 +278,10 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
         else {
             figma.notify('😺 Oops! There is nothing selected.');
         }
+    }
+    if (msg.type === 'reload-variables') {
+        yield loadAllData();
+        figma.notify('🔄 Variables reloaded.');
     }
 });
 // Validar si la variable es compatible con la acción y el tipo de nodo

@@ -3,68 +3,70 @@ figma.showUI(__html__, { width: 240, height: 600 });
 // Función para cargar variables y estilos
 async function loadAllData() {
   try {
+    figma.ui.postMessage({ type: 'loading-start' });
     await importRemoteVariables();
 
-    setTimeout(async () => {
-      const collections = await figma.variables.getLocalVariableCollectionsAsync();
-      const localEnrichedVariables: VariablesWithMetaInfoType[] = [];
+    const collections = await figma.variables.getLocalVariableCollectionsAsync();
+    const localEnrichedVariables: VariablesWithMetaInfoType[] = [];
 
-      for (const collection of collections) {
-        const localVariables = [];
+    for (const collection of collections) {
+      const localVariables = [];
 
-        for (const variable of collection.variableIds) {
-          const awaitedVar = await figma.variables.getVariableByIdAsync(variable);
+      for (const variable of collection.variableIds) {
+        const awaitedVar = await figma.variables.getVariableByIdAsync(variable);
 
-          if (awaitedVar?.resolvedType !== 'COLOR') continue;
-          localVariables.push(awaitedVar);
-        }
-
-        localEnrichedVariables.push({
-          variables: localVariables,
-          libraryName: 'Local',
-          collectionName: collection.name
-        });
+        if (awaitedVar?.resolvedType !== 'COLOR') continue;
+        localVariables.push(awaitedVar);
       }
 
-      const libraryCollections =
-        await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
-      const libraryVariables: VariablesWithMetaInfoType[] = [];
-      for (const collection of libraryCollections) {
-        const variablesInCollection = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
-          collection.key
-        );
-        const mapped: VariablesWithMetaInfoType = {
-          variables: [],
-          libraryName: collection.libraryName,
-          collectionName: collection.name
-        };
-        for (const variable of variablesInCollection) {
-          const awaitedVar = await figma.variables.importVariableByKeyAsync(variable.key);
-          mapped.variables.push(awaitedVar);
-        }
-        libraryVariables.push(mapped);
-      }
-
-      const allVariables = [...localEnrichedVariables, ...libraryVariables];
-      const colorStyles = await figma.getLocalPaintStylesAsync();
-
-      processVariablesInChunks(allVariables, 50, async (variablesData) => {
-        const stylesData = colorStyles.map((style) => ({
-          name: style.name,
-          id: style.id,
-          paints: style.paints // Guardamos los valores de los colores
-        }));
-
-        figma.ui.postMessage({
-          type: 'all-data',
-          variables: variablesData,
-          styles: stylesData
-        });
+      localEnrichedVariables.push({
+        variables: localVariables,
+        libraryName: 'Local',
+        collectionName: collection.name
       });
-    }, 0);
+    }
+
+    const libraryCollections =
+      await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+    const libraryVariables: VariablesWithMetaInfoType[] = [];
+    for (const collection of libraryCollections) {
+      const variablesInCollection = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
+        collection.key
+      );
+      const mapped: VariablesWithMetaInfoType = {
+        variables: [],
+        libraryName: collection.libraryName,
+        collectionName: collection.name
+      };
+      for (const variable of variablesInCollection) {
+        const awaitedVar = await figma.variables.importVariableByKeyAsync(variable.key);
+        mapped.variables.push(awaitedVar);
+      }
+      libraryVariables.push(mapped);
+    }
+
+    const allVariables = [...localEnrichedVariables, ...libraryVariables];
+    const colorStyles = await figma.getLocalPaintStylesAsync();
+
+    await processVariablesInChunks(allVariables, 50, async (variablesData) => {
+      const stylesData = colorStyles.map((style) => ({
+        name: style.name,
+        id: style.id,
+        paints: style.paints
+      }));
+
+      figma.ui.postMessage({
+        type: 'all-data',
+        variables: variablesData,
+        styles: stylesData
+      });
+    });
+
+    figma.ui.postMessage({ type: 'loading-end' });
   } catch (error) {
     console.error('Error al cargar los datos:', error);
     figma.notify('Error al cargar todas las variables y estilos.');
+    figma.ui.postMessage({ type: 'loading-end' });
   }
 }
 
@@ -73,41 +75,45 @@ function processVariablesInChunks(
   allGroupedVariables: VariablesWithMetaInfoType[],
   chunkSize: number,
   callback: (variablesData: VariableData[]) => void
-) {
-  const allVariables = allGroupedVariables.flatMap((group) => group.variables);
-  let currentIndex = 0;
-  const variablesData = [] as VariableData[];
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const allVariables = allGroupedVariables.flatMap((group) => group.variables);
+    let currentIndex = 0;
+    const variablesData = [] as VariableData[];
 
-  function processNextChunk() {
-    const chunk = allVariables.slice(currentIndex, currentIndex + chunkSize);
-    Promise.all(
-      chunk.map(async (variable) => {
-        const color = await processColorValues(variable);
+    function processNextChunk() {
+      const chunk = allVariables.slice(currentIndex, currentIndex + chunkSize);
+      Promise.all(
+        chunk.map(async (variable) => {
+          const color = await processColorValues(variable);
 
-        variablesData.push({
-          alias: variable.name || 'Sin alias',
-          id: variable.id,
-          color: color,
-          // isAlias: !!variable.variableCollectionId,
-          isRemote: variable.remote,
-          libraryName: allGroupedVariables.find((group) => group.variables.includes(variable))!
-            .libraryName,
-          scopes: variable.scopes || [],
-          collectionName: allGroupedVariables.find((group) => group.variables.includes(variable))!
-            .collectionName
-        });
-      })
-    ).then(() => {
-      currentIndex += chunkSize;
-      if (currentIndex < allVariables.length) {
-        setTimeout(processNextChunk, 0);
-      } else {
-        callback(variablesData);
-      }
-    });
-  }
+          variablesData.push({
+            alias: variable.name || 'Sin alias',
+            id: variable.id,
+            color: color,
+            isRemote: variable.remote,
+            libraryName: allGroupedVariables.find((group) => group.variables.includes(variable))!
+              .libraryName,
+            scopes: variable.scopes || [],
+            collectionName: allGroupedVariables.find((group) => group.variables.includes(variable))!
+              .collectionName
+          });
+        })
+      )
+        .then(() => {
+          currentIndex += chunkSize;
+          if (currentIndex < allVariables.length) {
+            setTimeout(processNextChunk, 0);
+          } else {
+            callback(variablesData);
+            resolve();
+          }
+        })
+        .catch(reject);
+    }
 
-  processNextChunk();
+    processNextChunk();
+  });
 }
 
 // Procesar los valores de color, manejando variables alias
@@ -298,6 +304,11 @@ figma.ui.onmessage = async (msg) => {
     } else {
       figma.notify('😺 Oops! There is nothing selected.');
     }
+  }
+
+  if (msg.type === 'reload-variables') {
+    await loadAllData();
+    figma.notify('🔄 Variables reloaded.');
   }
 };
 

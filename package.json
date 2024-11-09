@@ -1,6 +1,6 @@
 {
   "name": "visible-variable",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Your Figma Plugin",
   "main": "code.js",
   "scripts": {
