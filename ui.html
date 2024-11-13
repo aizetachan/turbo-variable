@@ -26,7 +26,7 @@
         .tab {
             font-size: 0.8rem;
             font-weight: 400;
-            padding: 10px;
+            padding: 8px;
             cursor: pointer;
             color: #00000080;
             width: 100%;
@@ -248,16 +248,23 @@
             display: block;
         }
 
+        .collections-update-actions {
+            display: flex;
+            gap: 4px;
+            padding-left: 16px;
+            padding-right: 16px;
+            margin-top: 4px;
+            margin-bottom: 8px;
+
+        }
+
         .collection-selector-wrapper {
+            width: 100%;
             position: relative;
-            margin-left: 16px;
-            margin-right: 16px;
             display: flex;
             align-items: center;
             font-size: 12px;
-            margin-bottom: 8px;
-            padding-top: 4px;
-            padding-bottom: 4px;
+    
             border: 1px solid #E6E6E6;
             border-radius: 8px;
             cursor: pointer;
@@ -282,9 +289,12 @@
             align-items: center;
             justify-content: space-between;
             padding-left: 8px;
-            padding-top: 4px;
             background-color: #fff;
             border-radius: 8px;
+        }
+
+        .collection-selector:hover {
+            background-color:#f5f5f5
         }
 
         .collection-options-list {
@@ -327,21 +337,22 @@
         .update-button-wrapper {
             display: flex;
             justify-content: center;
-            margin: 8px 16px;
         }
 
         .update-button {
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            background-color: #0d99ff;
-            color: white;
-            border: none;
+            width: 24px;
+            height: 24px;
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #E6E6E6;
             border-radius: 8px;
             cursor: pointer;
+            padding: 0;
+            
         }
 
         .update-button:hover {
-            background-color: #007acc;
+            background-color: #f5f5f5;
         }
 
         .loading-spinner {
@@ -378,21 +389,27 @@
     <div class="tab active" id="tab-variables">Variables</div>
     <div class="tab disabled" id="tab-estilos" data-tooltip="Coming soon">Styles</div>
 </div>
-
-<div class="update-button-wrapper">
-    <button id="updateButton" class="update-button">🔄 Reload variables</button>
-</div>
-
-<div id="customCollectionSelector" class="collection-selector-wrapper">
-    <div id="collectionOptionsList" class="collection-options-list hidden">
-    </div>
-    <div class="collection-selector">
-        <span id="selectedCollection" class="selected-collection">All collections</span>
-        <div id="chevron" class="down-chevron-wrapper">
-            <svg  width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M9.64601 11.146C9.69245 11.0995 9.74763 11.0625 9.80838 11.0373C9.86912 11.0121 9.93424 10.9991 10 10.9991C10.0658 10.9991 10.1309 11.0121 10.1916 11.0373C10.2524 11.0625 10.3076 11.0995 10.354 11.146L12 12.793L13.646 11.146C13.6925 11.0996 13.7477 11.0627 13.8084 11.0375C13.8692 11.0124 13.9343 10.9994 14 10.9994C14.0658 10.9994 14.1309 11.0124 14.1916 11.0375C14.2523 11.0627 14.3075 11.0996 14.354 11.146C14.4005 11.1925 14.4374 11.2477 14.4625 11.3085C14.4877 11.3692 14.5006 11.4343 14.5006 11.5C14.5006 11.5658 14.4877 11.6309 14.4625 11.6916C14.4374 11.7524 14.4005 11.8076 14.354 11.854L12.354 13.854C12.3076 13.9006 12.2524 13.9375 12.1916 13.9628C12.1309 13.988 12.0658 14.0009 12 14.0009C11.9342 14.0009 11.8691 13.988 11.8084 13.9628C11.7476 13.9375 11.6925 13.9006 11.646 13.854L9.64601 11.854C9.59945 11.8076 9.5625 11.7524 9.5373 11.6917C9.51209 11.6309 9.49911 11.5658 9.49911 11.5C9.49911 11.4343 9.51209 11.3692 9.5373 11.3084C9.5625 11.2477 9.59945 11.1925 9.64601 11.146Z" fill="black"/>
-            </svg>
+<div class="collections-update-actions">
+    <div id="customCollectionSelector" class="collection-selector-wrapper">
+        <div id="collectionOptionsList" class="collection-options-list hidden">
         </div>
+        <div class="collection-selector">
+            <span id="selectedCollection" class="selected-collection">All collections</span>
+            <div id="chevron" class="down-chevron-wrapper">
+                <svg  width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M9.64601 11.146C9.69245 11.0995 9.74763 11.0625 9.80838 11.0373C9.86912 11.0121 9.93424 10.9991 10 10.9991C10.0658 10.9991 10.1309 11.0121 10.1916 11.0373C10.2524 11.0625 10.3076 11.0995 10.354 11.146L12 12.793L13.646 11.146C13.6925 11.0996 13.7477 11.0627 13.8084 11.0375C13.8692 11.0124 13.9343 10.9994 14 10.9994C14.0658 10.9994 14.1309 11.0124 14.1916 11.0375C14.2523 11.0627 14.3075 11.0996 14.354 11.146C14.4005 11.1925 14.4374 11.2477 14.4625 11.3085C14.4877 11.3692 14.5006 11.4343 14.5006 11.5C14.5006 11.5658 14.4877 11.6309 14.4625 11.6916C14.4374 11.7524 14.4005 11.8076 14.354 11.854L12.354 13.854C12.3076 13.9006 12.2524 13.9375 12.1916 13.9628C12.1309 13.988 12.0658 14.0009 12 14.0009C11.9342 14.0009 11.8691 13.988 11.8084 13.9628C11.7476 13.9375 11.6925 13.9006 11.646 13.854L9.64601 11.854C9.59945 11.8076 9.5625 11.7524 9.5373 11.6917C9.51209 11.6309 9.49911 11.5658 9.49911 11.5C9.49911 11.4343 9.51209 11.3692 9.5373 11.3084C9.5625 11.2477 9.59945 11.1925 9.64601 11.146Z" fill="black"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="update-button-wrapper">
+        <button id="updateButton" class="update-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M10.8013 7.39706C9.70537 7.68245 8.74725 8.34947 8.09921 9.27818C7.45118 10.2069 7.15575 11.3363 7.26607 12.4634C7.35711 13.3936 7.71961 14.2718 8.30211 14.9918V13.2791C8.30211 13.003 8.52596 12.7791 8.80211 12.7791C9.07825 12.7791 9.30211 13.003 9.30211 13.2791V15.7096C9.30211 16.0564 9.02097 16.3376 8.67418 16.3376H6.24365C5.96751 16.3376 5.74365 16.1137 5.74365 15.8376C5.74365 15.5614 5.96751 15.3376 6.24365 15.3376H7.30968C6.73046 14.5235 6.36934 13.5673 6.27082 12.5608C6.13732 11.1968 6.49485 9.82989 7.27913 8.70594C8.0634 7.58198 9.22296 6.77472 10.5493 6.42933C11.7137 6.1261 12.9395 6.19634 14.0557 6.62312C14.3137 6.72174 14.4167 7.02312 14.296 7.27152C14.1754 7.51993 13.8769 7.62079 13.6172 7.5269C12.7169 7.2014 11.7352 7.15385 10.8013 7.39706Z" fill="#7A7A7A"/>
+                <path d="M14.6979 10.721C14.6979 10.9971 14.9218 11.221 15.1979 11.221C15.474 11.221 15.6979 10.9971 15.6979 10.721V9.00832C16.2804 9.72829 16.6429 10.6065 16.7339 11.5367C16.8442 12.6638 16.5488 13.7932 15.9008 14.7219C15.2528 15.6506 14.2946 16.3176 13.1987 16.603C12.2648 16.8462 11.2831 16.7987 10.3828 16.4732C10.1231 16.3793 9.82458 16.4802 9.70396 16.7286C9.58334 16.977 9.68633 17.2784 9.94426 17.377C11.0605 17.8038 12.2863 17.874 13.4507 17.5708C14.777 17.2254 15.9366 16.4181 16.7209 15.2942C17.5051 14.1702 17.8627 12.8033 17.7292 11.4393C17.6307 10.4328 17.2695 9.47656 16.6903 8.66254L17.7563 8.66254C18.0325 8.66254 18.2563 8.43868 18.2563 8.16254C18.2563 7.8864 18.0325 7.66254 17.7563 7.66254L15.3258 7.66254C14.979 7.66254 14.6979 7.94367 14.6979 8.29046V10.721Z" fill="#7A7A7A"/>
+              </svg> 
+        </button>
     </div>
 </div>
 
