@@ -321,6 +321,10 @@ figma.ui.onmessage = async (msg) => {
     await loadAllData();
     figma.notify('🔄 Variables reloaded.');
   }
+
+  if (msg.type === 'resize') {
+    figma.ui.resize(msg.width, msg.height);
+  }
 };
 
 // Validar si la variable es compatible con la acción y el tipo de nodo

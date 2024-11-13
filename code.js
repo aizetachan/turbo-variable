@@ -211,14 +211,13 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
                             const strokesCopy = [...node.strokes];
                             // Check if stroke is present and is a solid paint
                             if (strokesCopy.length === 0 || strokesCopy[0].type !== 'SOLID') {
-                                const newStrokePaint = {
+                                strokesCopy[0] = {
                                     type: 'SOLID',
                                     color: { r: 0, g: 0, b: 0 }, // just base color
                                     opacity: 1,
                                     visible: true,
                                     blendMode: 'NORMAL'
                                 };
-                                strokesCopy[0] = newStrokePaint;
                             }
                             strokesCopy[0] = figma.variables.setBoundVariableForPaint(strokesCopy[0], 'color', variable);
                             node.strokes = strokesCopy;
@@ -292,6 +291,9 @@ figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
     if (msg.type === 'reload-variables') {
         yield loadAllData();
         figma.notify('🔄 Variables reloaded.');
+    }
+    if (msg.type === 'resize') {
+        figma.ui.resize(msg.width, msg.height);
     }
 });
 // Validar si la variable es compatible con la acción y el tipo de nodo
