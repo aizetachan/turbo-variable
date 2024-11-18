@@ -2,7 +2,7 @@
 
 <!-- Logo -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/aizetachan/turbo-variable/main/.github/assets/logo.png" height="100px" alt="Plugin Logo"/>
+  <img src="logo.png" alt="Turbo Variables logo"/>
 </p>
 <h1 align="center">Figma Plugin: Advanced Variable Manager</h1>
 
