@@ -1,0 +1,28 @@
+/* src/ui/components/FilterInput.module.scss */
+.filterInput {
+  width: 100%;
+  padding: 12px 32px;
+  font-size: 0.8rem;
+  border-top: 1px solid #e6e6e6;
+  border-right: none;
+  border-left: none;
+  border-bottom: 1px solid #e6e6e6;
+  border-radius: 0;
+  color: #333;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 10;
+
+  &:hover {
+    border-top: 1px solid #c9c9c9;
+    border-bottom: 1px solid #c9c9c9;
+  }
+
+  &:focus-visible {
+    outline-color: #0d99ff;
+    outline-style: solid;
+    outline-width: 2px;
+    outline-offset: -1px;
+  }
+}

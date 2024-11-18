@@ -1,0 +1,36 @@
+.tabs {
+  display: flex;
+  margin: 8px 16px;
+  gap: 8px;
+}
+
+.tab {
+  font-size: 0.8rem;
+  font-weight: 400;
+  padding: 8px;
+  cursor: pointer;
+  color: #00000080;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0;
+  border-radius: 8px;
+
+  &.active {
+    background-color: #f5f5f5;
+    color: #000000e5;
+    border: 1px solid #fff;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+
+  &.disabled {
+    background-color: #ffffff;
+    color: #c0c0c0;
+    cursor: not-allowed;
+    border: 1px dashed #e6e6e6;
+  }
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
