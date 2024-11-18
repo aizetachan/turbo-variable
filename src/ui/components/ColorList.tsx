@@ -13,9 +13,7 @@ const ColorList: React.FC<ColorListProps> = ({ items, activeTab }) => {
   if (items.length === 0) {
     return (
       <div className={styles.emptyMessage}>
-        {activeTab === 'variables'
-          ? 'No variables found in the document.'
-          : 'No styles found in the document.'}
+        {activeTab === 'variables' ? 'No variables found in the document.' : 'Work in progress.'}
       </div>
     );
   }
