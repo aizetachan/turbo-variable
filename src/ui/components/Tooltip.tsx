@@ -1,6 +1,6 @@
-import React, { useState, PropsWithChildren, useRef, useEffect } from "react";
-import ReactDOM from "react-dom";
-import styles from "./Tooltip.module.scss";
+import React, { useState, PropsWithChildren, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import styles from './Tooltip.module.scss';
 
 type TooltipProps = {
   text: string;
@@ -10,7 +10,7 @@ const Tooltip = ({ text, children }: PropsWithChildren<TooltipProps>) => {
   const [visible, setVisible] = useState(false);
   const [coords, setCoords] = useState<{ x: number; y: number }>({
     x: 0,
-    y: 0,
+    y: 0
   });
   const tooltipRef = useRef<HTMLDivElement>(null);
 
@@ -46,11 +46,13 @@ const Tooltip = ({ text, children }: PropsWithChildren<TooltipProps>) => {
     setCoords({ x, y });
   };
 
+  const formattedText = text.replace(/\//g, '/\u200B');
+
   const childWithTooltip = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement, {
         onMouseEnter: handleMouseEnter,
         onMouseLeave: handleMouseLeave,
-        onMouseMove: handleMouseMove,
+        onMouseMove: handleMouseMove
       })
     : children;
 
@@ -62,9 +64,8 @@ const Tooltip = ({ text, children }: PropsWithChildren<TooltipProps>) => {
           <div
             className={styles.tooltip}
             ref={tooltipRef}
-            style={{ left: coords.x, top: coords.y }}
-          >
-            {text}
+            style={{ left: coords.x, top: coords.y }}>
+            {formattedText}
           </div>,
           document.body
         )}

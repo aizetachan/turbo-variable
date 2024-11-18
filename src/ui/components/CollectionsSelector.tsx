@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import UpdateIcon from "../assets/update.svg?component";
-import ChevronIcon from "../assets/chevron.svg?component";
-import styles from "./CollectionsSelector.module.scss";
+import React, { useState } from 'react';
+import UpdateIcon from '../assets/update.svg?component';
+import ChevronIcon from '../assets/chevron.svg?component';
+import styles from './CollectionsSelector.module.scss';
 
 interface CollectionsSelectorProps {
   collections: string[];
@@ -14,7 +14,7 @@ const CollectionsSelector: React.FC<CollectionsSelectorProps> = ({
   collections,
   selectedCollection,
   setSelectedCollection,
-  handleUpdateClick,
+  handleUpdateClick
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -25,19 +25,10 @@ const CollectionsSelector: React.FC<CollectionsSelectorProps> = ({
 
   return (
     <div className={styles.collectionsUpdateActions}>
-      <div
-        className={styles.collectionSelectorWrapper}
-        onClick={() => setIsOpen(!isOpen)}
-      >
+      <div className={styles.collectionSelectorWrapper} onClick={() => setIsOpen(!isOpen)}>
         <div className={styles.collectionSelector}>
-          <span className={styles.selectedCollection}>
-            {selectedCollection}
-          </span>
-          <div
-            className={`${styles.downChevronWrapper} ${
-              isOpen ? styles.rotated : ""
-            }`}
-          >
+          <span className={styles.selectedCollection}>{selectedCollection}</span>
+          <div className={`${styles.downChevronWrapper} ${isOpen ? styles.rotated : ''}`}>
             <ChevronIcon />
           </div>
         </div>

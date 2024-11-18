@@ -1,4 +1,4 @@
-import * as Networker from "monorepo-networker";
+import * as Networker from 'monorepo-networker';
 
 interface Payload {
   text: string;
@@ -6,7 +6,7 @@ interface Payload {
 
 export class HelloMessage extends Networker.MessageType<Payload> {
   constructor(private side: Networker.Side) {
-    super("hello-" + side.getName());
+    super('hello-' + side.getName());
   }
 
   receivingSide(): Networker.Side {

@@ -1,5 +1,5 @@
-import React from "react";
-import styles from "./FilterInput.module.scss";
+import React from 'react';
+import styles from './FilterInput.module.scss';
 
 interface FilterInputProps {
   value: string;

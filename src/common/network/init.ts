@@ -1,6 +1,6 @@
-import * as Networker from "monorepo-networker";
-import { NetworkMessages } from "@common/network/messages";
-import { NetworkSide } from "@common/network/sides";
+import * as Networker from 'monorepo-networker';
+import { NetworkMessages } from '@common/network/messages';
+import { NetworkSide } from '@common/network/sides';
 
 export const initializeNetwork = Networker.createInitializer({
   messagesRegistry: NetworkMessages.registry,
@@ -11,7 +11,7 @@ export const initializeNetwork = Networker.createInitializer({
     });
 
     register(NetworkSide.UI, NetworkSide.PLUGIN, (message) => {
-      parent.postMessage({ pluginMessage: message }, "*");
+      parent.postMessage({ pluginMessage: message }, '*');
     });
-  },
+  }
 });

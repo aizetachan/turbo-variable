@@ -1,5 +1,5 @@
-import * as Networker from "monorepo-networker";
-import { NetworkSide } from "@common/network/sides";
+import * as Networker from 'monorepo-networker';
+import { NetworkSide } from '@common/network/sides';
 
 interface Payload {}
 
@@ -11,7 +11,7 @@ export class PingMessage extends Networker.MessageType<Payload, Response> {
   }
 
   handle(payload: Payload, from: Networker.Side): string {
-    console.log(from.getName(), "has pinged us!");
+    console.log(from.getName(), 'has pinged us!');
     return `Pong, ${from.getName()}!`;
   }
 }
