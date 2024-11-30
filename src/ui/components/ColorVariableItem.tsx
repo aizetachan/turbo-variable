@@ -3,35 +3,23 @@ import styles from './ColorItem.module.scss';
 import Tooltip from './Tooltip';
 import FillActionButtonIcon from '../assets/fillActionButton.svg?component';
 import StrokeActionButtonIcon from '../assets/strokeActionButton.svg?component';
-import { VariableData } from '@ui/types';
+import { Color, VariableData } from '@ui/types';
 
 interface VariableItemProps {
   item: VariableData;
 }
 
-const VariableItem: React.FC<VariableItemProps> = ({ item }) => {
-  const color = item.color;
+const ColorVariableItem: React.FC<VariableItemProps> = ({ item }) => {
+  const color = item.value as Color;
 
-  const handleFillClick = () => {
+  const handleFillClick = (action: 'fill' | 'stroke') => {
     parent.postMessage(
       {
         pluginMessage: {
-          type: 'apply-color',
-          action: 'fill',
-          variableId: item.id
-        }
-      },
-      '*'
-    );
-  };
-
-  const handleStrokeClick = () => {
-    parent.postMessage(
-      {
-        pluginMessage: {
-          type: 'apply-color',
-          action: 'stroke',
-          variableId: item.id
+          type: 'apply-variable',
+          action: action,
+          variableId: item.id,
+          variableType: item.type
         }
       },
       '*'
@@ -50,17 +38,23 @@ const VariableItem: React.FC<VariableItemProps> = ({ item }) => {
             : '#ccc'
         }}
       />
-      <Tooltip text={`${item.collectionName}/${item.alias}`}>
+      <Tooltip trigger={'click'} text={`${item.collectionName}/${item.alias}`}>
         <div className={styles.alias}>{item.alias.split('/').pop() || 'No alias'}</div>
       </Tooltip>
       <div className={styles.actionButtons}>
         <Tooltip text="Fill">
-          <div className={styles.actionButton} data-tooltip="Fill" onClick={handleFillClick}>
+          <div
+            className={styles.actionButton}
+            data-tooltip="Fill"
+            onClick={() => handleFillClick('fill')}>
             <FillActionButtonIcon />
           </div>
         </Tooltip>
         <Tooltip text="Stroke">
-          <div className={styles.actionButton} data-tooltip="Stroke" onClick={handleStrokeClick}>
+          <div
+            className={styles.actionButton}
+            data-tooltip="Stroke"
+            onClick={() => handleFillClick('stroke')}>
             <StrokeActionButtonIcon />
           </div>
         </Tooltip>
@@ -69,4 +63,4 @@ const VariableItem: React.FC<VariableItemProps> = ({ item }) => {
   );
 };
 
-export default VariableItem;
+export default ColorVariableItem;

@@ -16,8 +16,12 @@ export async function loadAllData() {
       for (const variable of collection.variableIds) {
         const awaitedVar = await figma.variables.getVariableByIdAsync(variable);
 
-        if (awaitedVar?.resolvedType !== 'COLOR') continue;
-        localVariables.push(awaitedVar);
+        if (awaitedVar?.resolvedType === 'COLOR' || awaitedVar?.resolvedType === 'FLOAT') {
+          if (awaitedVar?.resolvedType === 'FLOAT') {
+            console.log('FLOAT', awaitedVar);
+          }
+          localVariables.push(awaitedVar);
+        }
       }
 
       localEnrichedVariables.push({
@@ -40,33 +44,26 @@ export async function loadAllData() {
         collectionName: collection.name
       };
       for (const variable of variablesInCollection) {
-        const awaitedVar = await figma.variables.importVariableByKeyAsync(variable.key);
-        mapped.variables.push(awaitedVar);
+        if (variable.resolvedType === 'COLOR' || variable.resolvedType === 'FLOAT') {
+          const awaitedVar = await figma.variables.importVariableByKeyAsync(variable.key);
+          mapped.variables.push(awaitedVar);
+        }
       }
       libraryVariables.push(mapped);
     }
 
     const allVariables = [...localEnrichedVariables, ...libraryVariables];
-    const colorStyles = await figma.getLocalPaintStylesAsync();
 
     await processVariablesInChunks(allVariables, 50, async (variablesData) => {
-      const stylesData = colorStyles.map((style) => ({
-        name: style.name,
-        id: style.id,
-        paints: style.paints
-      }));
-
       figma.ui.postMessage({
         type: 'all-data',
-        variables: variablesData,
-        styles: stylesData
+        variables: variablesData
       });
     });
-
-    figma.ui.postMessage({ type: 'loading-end' });
   } catch (error) {
-    console.error('Error al cargar los datos:', error);
-    figma.notify('Error al cargar todas las variables y estilos.');
+    console.error('Error loading all variables :', error);
+    figma.notify('🚨 Error loading all variables.');
+  } finally {
     figma.ui.postMessage({ type: 'loading-end' });
   }
 }

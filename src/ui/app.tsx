@@ -2,17 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import Tabs from './components/Tabs';
 import FilterInput from './components/FilterInput';
 import CollectionsSelector from './components/CollectionsSelector';
-import ColorList from './components/ColorList';
+import VariableList from './components/VariableList';
 import LoadingSpinner from './components/LoadingSpinner';
-import { VariableData, StyleData } from '@ui/types';
+import { VariableData } from '@ui/types';
 import './App.css';
 
 const App: React.FC = () => {
   const [variablesData, setVariablesData] = useState<VariableData[]>([]);
   const [filteredVariables, setFilteredVariables] = useState<VariableData[]>([]);
-  const [stylesData, setStylesData] = useState<StyleData[]>([]);
-  const [filteredStyles, setFilteredStyles] = useState<StyleData[]>([]);
-  const [activeTab, setActiveTab] = useState<'variables' | 'styles'>('variables');
+  const [activeTab, setActiveTab] = useState<'color' | 'number'>('color');
   const [filterValue, setFilterValue] = useState('');
   const [collections, setCollections] = useState<string[]>([]);
   const [selectedCollection, setSelectedCollection] = useState('All collections');
@@ -34,52 +32,49 @@ const App: React.FC = () => {
     return ['All collections', ...collectionNames];
   };
 
-  const filterVariables = (variables: VariableData[], collection: string, filter: string) => {
+  const filterVariables = (
+    variables: VariableData[],
+    collection: string,
+    inputValue: string,
+    type: 'color' | 'number'
+  ) => {
     let filtered = variables;
+
+    filtered = filtered.filter((v) => v.type === type);
 
     if (collection !== 'All collections') {
       filtered = filtered.filter((v) => v.collectionName === collection);
     }
 
-    if (filter) {
-      filtered = filtered.filter((v) => v.alias.toLowerCase().includes(filter.toLowerCase()));
+    if (inputValue) {
+      filtered = filtered.filter((v) => v.alias.toLowerCase().includes(inputValue.toLowerCase()));
     }
 
     setFilteredVariables(filtered);
   };
 
-  const filterStyles = (styles: StyleData[], filter: string) => {
-    let filtered = styles;
+  const handleFilterValueChange = (inputValue: string) => {
+    setFilterValue(inputValue);
 
-    if (filter) {
-      filtered = filtered.filter((s) => s.name.toLowerCase().includes(filter.toLowerCase()));
-    }
-
-    setFilteredStyles(filtered);
-  };
-
-  const handleFilterValueChange = (value: string) => {
-    setFilterValue(value);
-
-    if (activeTab === 'variables') {
-      filterVariables(variablesData, selectedCollection, value);
-    } else if (activeTab === 'styles') {
-      filterStyles(stylesData, value);
+    if (activeTab === 'color') {
+      filterVariables(variablesData, selectedCollection, inputValue, 'color');
+    } else if (activeTab === 'number') {
+      filterVariables(variablesData, selectedCollection, inputValue, 'number');
     }
   };
 
   const handleSelectedCollectionChange = (collection: string) => {
     setSelectedCollection(collection);
-    filterVariables(variablesData, collection, filterValue);
+    filterVariables(variablesData, collection, filterValue, activeTab);
   };
 
-  const handleActiveTabChange = (tab: 'variables' | 'styles') => {
+  const handleActiveTabChange = (tab: 'color' | 'number') => {
     setActiveTab(tab);
 
-    if (tab === 'variables') {
-      filterVariables(variablesData, selectedCollection, filterValue);
-    } else if (tab === 'styles') {
-      filterStyles(stylesData, filterValue);
+    if (tab === 'color') {
+      filterVariables(variablesData, selectedCollection, filterValue, 'color');
+    } else if (tab === 'number') {
+      filterVariables(variablesData, selectedCollection, filterValue, 'number');
     }
   };
 
@@ -99,18 +94,13 @@ const App: React.FC = () => {
 
       if (pluginMessage.type === 'all-data') {
         setVariablesData(pluginMessage.variables);
-        setStylesData(pluginMessage.styles);
         setCollections(extractCollections(pluginMessage.variables));
-
-        if (activeTab === 'variables') {
-          filterVariables(
-            pluginMessage.variables,
-            selectedCollectionRef.current,
-            filterValueRef.current
-          );
-        } else if (activeTab === 'styles') {
-          filterStyles(pluginMessage.styles, filterValueRef.current);
-        }
+        filterVariables(
+          pluginMessage.variables,
+          selectedCollectionRef.current,
+          filterValueRef.current,
+          activeTab
+        );
       }
     };
   }, [activeTab]);
@@ -118,20 +108,18 @@ const App: React.FC = () => {
   return (
     <div>
       <Tabs activeTab={activeTab} setActiveTab={handleActiveTabChange} />
-      {activeTab === 'variables' && (
-        <CollectionsSelector
-          collections={collections}
-          selectedCollection={selectedCollection}
-          setSelectedCollection={handleSelectedCollectionChange}
-          handleUpdateClick={handleUpdateClick}
-        />
-      )}
+      <CollectionsSelector
+        collections={collections}
+        selectedCollection={selectedCollection}
+        setSelectedCollection={handleSelectedCollectionChange}
+        handleUpdateClick={handleUpdateClick}
+      />
       <FilterInput value={filterValue} onChange={handleFilterValueChange} />
-      {activeTab === 'variables' ? (
-        <ColorList items={filteredVariables} activeTab="variables" />
-      ) : (
-        <ColorList items={filteredStyles} activeTab="styles" />
-      )}
+      <VariableList
+        items={filteredVariables}
+        activeTab={activeTab}
+        collection={selectedCollection}
+      />
       {loading && <LoadingSpinner />}
     </div>
   );

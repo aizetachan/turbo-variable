@@ -4,9 +4,10 @@ import styles from './Tooltip.module.scss';
 
 type TooltipProps = {
   text: string;
+  trigger?: 'hover' | 'click';
 };
 
-const Tooltip = ({ text, children }: PropsWithChildren<TooltipProps>) => {
+const Tooltip = ({ text, children, trigger = 'hover' }: PropsWithChildren<TooltipProps>) => {
   const [visible, setVisible] = useState(false);
   const [coords, setCoords] = useState<{ x: number; y: number }>({
     x: 0,
@@ -15,11 +16,15 @@ const Tooltip = ({ text, children }: PropsWithChildren<TooltipProps>) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = () => {
-    setVisible(true);
+    if (trigger === 'hover') {
+      setVisible(true);
+    }
   };
 
   const handleMouseLeave = () => {
-    setVisible(false);
+    if (trigger === 'hover') {
+      setVisible(false);
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -48,11 +53,31 @@ const Tooltip = ({ text, children }: PropsWithChildren<TooltipProps>) => {
 
   const formattedText = text.replace(/\//g, '/\u200B');
 
+  const handleMouseDown = () => {
+    if (trigger === 'click') {
+      setVisible(true);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (trigger === 'click') {
+      setVisible(false);
+    }
+  };
+
+  const handleMouseLeaveForClick = () => {
+    if (trigger === 'click') {
+      setVisible(false);
+    }
+  };
+
   const childWithTooltip = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement, {
         onMouseEnter: handleMouseEnter,
-        onMouseLeave: handleMouseLeave,
-        onMouseMove: handleMouseMove
+        onMouseLeave: trigger === 'click' ? handleMouseLeaveForClick : handleMouseLeave,
+        onMouseMove: handleMouseMove,
+        onMouseDown: handleMouseDown,
+        onMouseUp: handleMouseUp
       })
     : children;
 

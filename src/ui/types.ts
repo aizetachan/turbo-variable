@@ -1,18 +1,19 @@
 export interface VariableData {
   alias: string;
   id: string;
-  color: { r: number; g: number; b: number } | null;
+  value: Color | number | null;
   isAlias?: boolean;
   isRemote: boolean;
   scopes: string[];
   libraryName: string;
   collectionName: string;
+  type: 'color' | 'number';
 }
 
-export interface StyleData {
-  name: string;
-  id: string;
-  paints: Paint[];
+export interface Color {
+  r: number;
+  g: number;
+  b: number;
 }
 
 export interface VariablesWithMetaInfoType {

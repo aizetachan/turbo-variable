@@ -16,11 +16,15 @@
   border-radius: 8px;
 
   &.active {
-    background-color: #f5f5f5;
-    color: #000000e5;
-    border: 1px solid #fff;
+    background-color: #4099ff;
+    color: #fff;
+    border: 1px solid #4099ff;
     border-radius: 8px;
     font-weight: 500;
+
+    &:hover {
+      background-color: #4099ff;
+    }
   }
 
   &.disabled {

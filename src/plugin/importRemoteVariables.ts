@@ -8,7 +8,7 @@ export async function importRemoteVariables() {
         collection.key
       );
       for (const variable of variablesInCollection) {
-        if (variable.resolvedType === 'COLOR') {
+        if (variable.resolvedType === 'COLOR' || variable.resolvedType === 'FLOAT') {
           await figma.variables.importVariableByKeyAsync(variable.key);
         }
       }
