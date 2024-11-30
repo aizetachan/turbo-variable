@@ -107,14 +107,16 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <Tabs activeTab={activeTab} setActiveTab={handleActiveTabChange} />
-      <CollectionsSelector
-        collections={collections}
-        selectedCollection={selectedCollection}
-        setSelectedCollection={handleSelectedCollectionChange}
-        handleUpdateClick={handleUpdateClick}
-      />
-      <FilterInput value={filterValue} onChange={handleFilterValueChange} />
+      <div className={'stickyHeader'}>
+        <Tabs activeTab={activeTab} setActiveTab={handleActiveTabChange} />
+        <CollectionsSelector
+          collections={collections}
+          selectedCollection={selectedCollection}
+          setSelectedCollection={handleSelectedCollectionChange}
+          handleUpdateClick={handleUpdateClick}
+        />
+        <FilterInput value={filterValue} onChange={handleFilterValueChange} />
+      </div>
       <VariableList
         items={filteredVariables}
         activeTab={activeTab}
