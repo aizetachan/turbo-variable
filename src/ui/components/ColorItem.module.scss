@@ -1,0 +1,61 @@
+.colorRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+  padding: 4px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  cursor: default;
+  background-color: #fff;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.colorSwatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+  flex-shrink: 0;
+  border-radius: 4px;
+  box-sizing: border-box;
+
+  &.aliasBorder {
+    border-color: red;
+  }
+}
+
+.alias {
+  width: 100%;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.6875rem;
+  color: #000;
+}
+
+.actionButtons {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.actionButton {
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  line-height: 24px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #dfdfdf;
+  }
+}

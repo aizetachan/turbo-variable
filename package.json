@@ -1,50 +1,56 @@
 {
-  "name": "visible-variable",
-  "version": "2.0.0",
-  "description": "Your Figma Plugin",
-  "main": "code.js",
+  "name": "figma-plugin-react-vite",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
-    "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
-    "watch": "npm run build -- --watch"
+    "start": "run-s dev",
+    "dev": "run-s watch",
+    "dev:ui-only": "vite -c ./vite.config.ui.ts",
+    "watch": "run-p watch:*",
+    "watch:ui": "npm run build:ui -- --watch --mode=development",
+    "watch:plugin": "npm run build:plugin -- --watch --mode=development",
+    "clean": "rimraf dist/*",
+    "types": "run-s types:*",
+    "types:src": "tsc",
+    "types:node": "tsc -P tsconfig.node.json",
+    "build": "run-s build:*",
+    "prebuild": "run-s types clean",
+    "build:ui": "vite build -c ./vite.config.ui.ts",
+    "build:plugin": "vite build -c ./vite.config.plugin.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint .  --fix"
   },
-  "author": "",
-  "license": "",
+  "dependencies": {
+    "monorepo-networker": "^1.5.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
-    "@eslint/js": "^9.13.0",
     "@figma/eslint-plugin-figma-plugins": "^0.15.0",
-    "@figma/plugin-typings": "^1.100.2",
-    "@types/eslint__js": "^8.42.3",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.1",
+    "@figma/plugin-typings": "^1.83.0",
+    "@types/node": "^18.15.11",
+    "@types/postcss-url": "^10.0.0",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.21",
+    "postcss-url": "^10.1.3",
     "prettier": "3.3.3",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.11.0"
-  },
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:@figma/figma-plugins/recommended"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    },
-    "root": true,
-    "rules": {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrorsIgnorePattern": "^_"
-        }
-      ]
-    }
+    "rimraf": "^5.0.5",
+    "sass": "^1.60.0",
+    "typescript": "5.5.4",
+    "typescript-eslint": "^8.14.0",
+    "vite": "^5.0.11",
+    "vite-plugin-generate-file": "^0.1.1",
+    "vite-plugin-react-rich-svg": "^1.0.0",
+    "vite-plugin-singlefile": "^2.0.3"
   }
 }

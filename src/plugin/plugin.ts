@@ -1,0 +1,65 @@
+import { loadAllData } from '@plugin/loadAllData';
+import { applyColorVariable } from '@plugin/applyColorVariable';
+import { applyNumberVariable } from '@plugin/applyNumberVariable';
+
+figma.showUI(__html__, { width: 240, height: 600 });
+
+async function handleApplyColorVariable(variableId: string, action: string) {
+  const nodes = figma.currentPage.selection;
+
+  if (nodes.length > 0 && variableId) {
+    try {
+      const variable = await figma.variables.getVariableByIdAsync(variableId);
+      if (!variable) {
+        figma.notify('Error: Could not obtain the variable.');
+        return;
+      }
+
+      await applyColorVariable(nodes, variable, action);
+    } catch (error) {
+      console.error('Error when applying the variable:', error);
+      figma.notify('🚨 It was not possible to apply the variable.');
+    }
+  } else {
+    figma.notify('😺 Oops! There is nothing selected.');
+  }
+}
+
+async function handleApplyNumberVariable(variableId: string, action: string) {
+  const nodes = figma.currentPage.selection;
+
+  if (nodes.length > 0 && variableId) {
+    try {
+      const variable = await figma.variables.getVariableByIdAsync(variableId);
+      if (!variable) {
+        figma.notify('Error: Could not obtain the variable.');
+        return;
+      }
+
+      await applyNumberVariable(nodes, variable, action);
+    } catch (error) {
+      console.error('Error when applying the variable:', error);
+      figma.notify('🚨 It was not possible to apply the variable.');
+    }
+  } else {
+    figma.notify('😺 Oops! There is nothing selected.');
+  }
+}
+
+figma.ui.onmessage = async (msg) => {
+  if (msg.type === 'apply-variable') {
+    const variableId = msg.variableId;
+    const variableType = msg.variableType;
+    const action = msg.action;
+    if (variableType === 'color') {
+      await handleApplyColorVariable(variableId, action);
+    } else if (variableType === 'number') {
+      await handleApplyNumberVariable(variableId, action);
+    }
+  } else if (msg.type === 'reload-variables') {
+    await loadAllData();
+    figma.notify('🔄 Variables reloaded.');
+  }
+};
+
+loadAllData();

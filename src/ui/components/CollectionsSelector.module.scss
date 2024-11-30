@@ -1,0 +1,99 @@
+.collectionsUpdateActions {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px;
+  margin: 4px 0 8px;
+}
+
+.collectionSelectorWrapper {
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+}
+
+.downChevronWrapper {
+  transition: transform 0.15s;
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+.collectionSelector {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 8px;
+  background-color: #fff;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.collectionOptionsList {
+  position: absolute;
+  cursor: pointer;
+  left: -2px;
+  top: -42px;
+  width: 199px;
+  background-color: #1e1e1e;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  color: #fff;
+  transform: translateY(72px);
+}
+
+.selectedCollection {
+  user-select: none;
+}
+
+.collectionOption {
+  padding-left: 16px;
+  border-radius: 4px;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 24px;
+
+  &:hover {
+    background-color: #0d99ff;
+  }
+}
+
+.updateButtonWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.updateButton {
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.updateIcon {
+  width: 22px;
+  height: 22px;
+}
