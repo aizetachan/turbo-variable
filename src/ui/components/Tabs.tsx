@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './Tabs.module.scss';
+import Tooltip from '@ui/components/Tooltip';
 
 interface TabsProps {
   activeTab: 'color' | 'number';
@@ -14,11 +15,11 @@ const Tabs: React.FC<TabsProps> = ({ setActiveTab, activeTab }) => {
         onClick={() => setActiveTab('color')}>
         Colors
       </div>
-      <div
-        className={`${styles.tab} ${activeTab === 'number' ? styles.active : ''}`}
-        onClick={() => setActiveTab('number')}>
-        Numbers
-      </div>
+      <Tooltip text={'coming soon'} trigger={'click'}>
+        <div className={`${styles.tab} ${activeTab === 'number' ? styles.active : ''}`}>
+          Numbers
+        </div>
+      </Tooltip>
     </div>
   );
 };

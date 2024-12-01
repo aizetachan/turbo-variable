@@ -1,4 +1,4 @@
-import React, { useState, PropsWithChildren, useRef } from 'react';
+import React, { useState, PropsWithChildren, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import styles from './Tooltip.module.scss';
 
@@ -14,25 +14,14 @@ const Tooltip = ({ text, children, trigger = 'hover' }: PropsWithChildren<Toolti
     y: 0
   });
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const mouseEventRef = useRef<React.MouseEvent | null>(null);
 
-  const handleMouseEnter = () => {
-    if (trigger === 'hover') {
-      setVisible(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (trigger === 'hover') {
-      setVisible(false);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const calculatePosition = (event: React.MouseEvent) => {
     const tooltipWidth = tooltipRef.current?.offsetWidth || 0;
     const tooltipHeight = tooltipRef.current?.offsetHeight || 0;
 
-    let x = e.clientX;
-    let y = e.clientY - 6;
+    let x = event.clientX;
+    let y = event.clientY - 6;
 
     const margin = 8;
 
@@ -45,31 +34,60 @@ const Tooltip = ({ text, children, trigger = 'hover' }: PropsWithChildren<Toolti
     }
 
     if (y - tooltipHeight - margin < 0) {
-      y = tooltipHeight + margin;
+      y = event.clientY + tooltipHeight + margin + 12;
     }
 
     setCoords({ x, y });
   };
 
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    if (trigger === 'hover') {
+      mouseEventRef.current = e;
+      setVisible(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (trigger === 'hover') {
+      mouseEventRef.current = null;
+      setVisible(false);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (visible) {
+      calculatePosition(e);
+    }
+  };
+
   const formattedText = text.replace(/\//g, '/\u200B');
 
-  const handleMouseDown = () => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     if (trigger === 'click') {
+      mouseEventRef.current = e;
       setVisible(true);
     }
   };
 
   const handleMouseUp = () => {
     if (trigger === 'click') {
+      mouseEventRef.current = null;
       setVisible(false);
     }
   };
 
   const handleMouseLeaveForClick = () => {
     if (trigger === 'click') {
+      mouseEventRef.current = null;
       setVisible(false);
     }
   };
+
+  useEffect(() => {
+    if (visible && mouseEventRef.current) {
+      calculatePosition(mouseEventRef.current);
+    }
+  }, [visible]);
 
   const childWithTooltip = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement, {
