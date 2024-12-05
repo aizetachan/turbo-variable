@@ -7,13 +7,19 @@
 .tab {
   font-size: 0.8rem;
   font-weight: 400;
-  padding: 8px;
+  padding: 4px 8px;
   cursor: pointer;
   color: #00000080;
   width: 100%;
   text-align: center;
   margin-bottom: 0;
   border-radius: 8px;
+
+  &.disabled {
+    cursor:not-allowed;
+    border: 1px dashed #E6E6E6;
+    color: #C3C3C3;
+  }
 
   &.active {
     background-color: #4099ff;

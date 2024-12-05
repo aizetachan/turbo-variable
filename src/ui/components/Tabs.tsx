@@ -16,9 +16,7 @@ const Tabs: React.FC<TabsProps> = ({ setActiveTab, activeTab }) => {
         Colors
       </div>
       <Tooltip text={'coming soon'} trigger={'click'}>
-        <div className={`${styles.tab} ${activeTab === 'number' ? styles.active : ''}`}>
-          Numbers
-        </div>
+        <div className={`${styles.tab} ${styles.disabled}`}> Numbers</div>
       </Tooltip>
     </div>
   );
