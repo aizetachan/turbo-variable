@@ -110,7 +110,7 @@ const Tooltip = ({ text, children, trigger = 'hover' }: PropsWithChildren<Toolti
             style={{ left: coords.x, top: coords.y }}>
             {formattedText}
           </div>,
-          document.body
+          document.getElementById('app-root')!
         )}
     </>
   );

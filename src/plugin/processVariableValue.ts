@@ -19,7 +19,15 @@ export async function processVariableValue(variable: Variable): Promise<any> {
         }
       } else {
         if (variable.resolvedType === 'COLOR' && typeof value === 'object' && 'r' in value) {
-          return { r: value.r, g: value.g, b: value.b };
+          const colorToReturn: Record<string, number | undefined> = {
+            r: value.r,
+            g: value.g,
+            b: value.b
+          };
+          if ('a' in value) {
+            colorToReturn.a = value.a;
+          }
+          return colorToReturn;
         } else if (variable.resolvedType === 'FLOAT' && typeof value === 'number') {
           return value;
         }

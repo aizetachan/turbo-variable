@@ -12,6 +12,17 @@ interface VariableItemProps {
 const ColorVariableItem: React.FC<VariableItemProps> = ({ item }) => {
   const color = item.value as Color;
 
+  const rgbaString = color
+    ? `rgba(${(color.r * 255).toFixed(0)}, ${(color.g * 255).toFixed(0)}, ${(color.b * 255).toFixed(
+        0
+      )}, ${color.a !== undefined ? color.a : 1})`
+    : '#ccc';
+  const rgbString = color
+    ? `rgb(${(color.r * 255).toFixed(0)}, ${(color.g * 255).toFixed(0)}, ${(color.b * 255).toFixed(
+        0
+      )}`
+    : `#ccc`;
+
   const handleFillClick = (action: 'fill' | 'stroke') => {
     parent.postMessage(
       {
@@ -28,16 +39,14 @@ const ColorVariableItem: React.FC<VariableItemProps> = ({ item }) => {
 
   return (
     <div className={styles.colorRow}>
-      <div
-        className={`${styles.colorSwatch} ${item.isAlias ? styles.aliasBorder : ''}`}
-        style={{
-          backgroundColor: color
-            ? `rgb(${Math.round(color.r * 255)}, ${Math.round(
-                color.g * 255
-              )}, ${Math.round(color.b * 255)})`
-            : '#ccc'
-        }}
-      />
+      <div className={styles.colorSwatch}>
+        <div className={styles.checkerboard} />
+        <div className={styles.colorWithoutAlphaOverlay} style={{ backgroundColor: rgbString }} />
+        <div
+          className={`${styles.colorOverlay} ${item.isAlias ? styles.aliasBorder : ''}`}
+          style={{ backgroundColor: rgbaString }}
+        />
+      </div>
       <Tooltip trigger={'click'} text={`${item.collectionName}/${item.alias}`}>
         <div className={styles.alias}>{item.alias.split('/').pop() || 'No alias'}</div>
       </Tooltip>

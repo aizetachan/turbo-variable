@@ -8,6 +8,7 @@ import { VariableData } from '@ui/types';
 import './App.css';
 
 const App: React.FC = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [variablesData, setVariablesData] = useState<VariableData[]>([]);
   const [filteredVariables, setFilteredVariables] = useState<VariableData[]>([]);
   const [activeTab, setActiveTab] = useState<'color' | 'number'>('color');
@@ -38,16 +39,19 @@ const App: React.FC = () => {
     inputValue: string,
     type: 'color' | 'number'
   ) => {
-    let filtered = variables;
-
-    filtered = filtered.filter((v) => v.type === type);
+    let filtered = variables.filter((v) => v.type === type);
 
     if (collection !== 'All collections') {
       filtered = filtered.filter((v) => v.collectionName === collection);
     }
 
-    if (inputValue) {
-      filtered = filtered.filter((v) => v.alias.toLowerCase().includes(inputValue.toLowerCase()));
+    if (inputValue.trim().length > 0) {
+      const words = inputValue.toLowerCase().split(/\s+/).filter(Boolean);
+
+      filtered = filtered.filter((v) => {
+        const combined = `${v.alias.toLowerCase()} ${v.collectionName.toLowerCase()}`;
+        return words.every((word) => combined.includes(word));
+      });
     }
 
     setFilteredVariables(filtered);
@@ -105,8 +109,22 @@ const App: React.FC = () => {
     };
   }, [activeTab]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setTheme(mediaQuery.matches ? 'dark' : 'light');
+    function handleThemeChange(e: MediaQueryListEvent) {
+      if (e.matches) {
+        setTheme('dark');
+      } else {
+        setTheme('light');
+      }
+    }
+
+    mediaQuery.addEventListener('change', handleThemeChange);
+  }, []);
+
   return (
-    <div>
+    <div className={theme} id="app-root">
       <div className={'stickyHeader'}>
         <Tabs activeTab={activeTab} setActiveTab={handleActiveTabChange} />
         <CollectionsSelector

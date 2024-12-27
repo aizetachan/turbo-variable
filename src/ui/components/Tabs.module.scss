@@ -9,25 +9,26 @@
   font-weight: 400;
   padding: 8px;
   cursor: pointer;
-  color: #00000080;
+  color: var(--tabs-color-text);
+  background-color: var(--tabs-background-color);
   width: 100%;
   text-align: center;
   margin-bottom: 0;
   border-radius: 8px;
 
   &.active {
-    background-color: #4099ff;
-    color: #fff;
-    border: 1px solid #4099ff;
+    background-color: var(--tabs-active-background-color);
+    color: var(--tabs-active-color-text);
+    border: 1px solid var(--tabs-active-background-color);
     border-radius: 8px;
     font-weight: 500;
 
     &:hover {
-      background-color: #4099ff;
+      background-color: (--tabs-hover-background-color);
     }
   }
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: var(--tabs-hover-background-color);
   }
 }

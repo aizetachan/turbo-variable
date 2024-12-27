@@ -17,9 +17,6 @@ export async function loadAllData() {
         const awaitedVar = await figma.variables.getVariableByIdAsync(variable);
 
         if (awaitedVar?.resolvedType === 'COLOR' || awaitedVar?.resolvedType === 'FLOAT') {
-          if (awaitedVar?.resolvedType === 'FLOAT') {
-            console.log('FLOAT', awaitedVar);
-          }
           localVariables.push(awaitedVar);
         }
       }
