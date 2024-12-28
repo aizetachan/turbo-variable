@@ -2,7 +2,7 @@ import { loadAllData } from '@plugin/loadAllData';
 import { applyColorVariable } from '@plugin/applyColorVariable';
 import { applyNumberVariable } from '@plugin/applyNumberVariable';
 
-figma.showUI(__html__, { width: 240, height: 600 });
+figma.showUI(__html__, { width: 240, height: 664 });
 
 async function handleApplyColorVariable(variableId: string, action: string) {
   const nodes = figma.currentPage.selection;

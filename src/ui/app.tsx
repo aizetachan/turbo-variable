@@ -8,7 +8,6 @@ import { VariableData } from '@ui/types';
 import './App.css';
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [variablesData, setVariablesData] = useState<VariableData[]>([]);
   const [filteredVariables, setFilteredVariables] = useState<VariableData[]>([]);
   const [activeTab, setActiveTab] = useState<'color' | 'number'>('color');
@@ -112,14 +111,11 @@ const App: React.FC = () => {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const isDark = mediaQuery.matches;
-    setTheme(isDark ? 'dark' : 'light');
     function handleThemeChange(e: MediaQueryListEvent) {
       if (e.matches) {
-        setTheme('dark');
         document.body.classList.add('dark');
         document.body.classList.remove('light');
       } else {
-        setTheme('light');
         document.body.classList.add('light');
         document.body.classList.remove('dark');
       }
