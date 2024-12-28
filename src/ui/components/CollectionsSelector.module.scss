@@ -61,11 +61,11 @@
 }
 
 .updateButton {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   background-color: var(--action-button-background-color);
   color: var(--action-button-color);
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--action-button-border-color);
   border-radius: 8px;
   cursor: pointer;
   padding: 0;

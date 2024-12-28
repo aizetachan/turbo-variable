@@ -111,20 +111,26 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setTheme(mediaQuery.matches ? 'dark' : 'light');
+    const isDark = mediaQuery.matches;
+    setTheme(isDark ? 'dark' : 'light');
     function handleThemeChange(e: MediaQueryListEvent) {
       if (e.matches) {
         setTheme('dark');
+        document.body.classList.add('dark');
+        document.body.classList.remove('light');
       } else {
         setTheme('light');
+        document.body.classList.add('light');
+        document.body.classList.remove('dark');
       }
     }
 
+    document.body.classList.add(isDark ? 'dark' : 'light');
     mediaQuery.addEventListener('change', handleThemeChange);
   }, []);
 
   return (
-    <div className={theme} id="app-root">
+    <div id="app-root">
       <div className={'stickyHeader'}>
         <Tabs activeTab={activeTab} setActiveTab={handleActiveTabChange} />
         <CollectionsSelector

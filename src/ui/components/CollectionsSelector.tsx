@@ -19,7 +19,6 @@ const CollectionsSelector: React.FC<CollectionsSelectorProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  /** We use a ref for the wrapper so we can measure boundingRect for the portal. */
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const handleOptionClick = (collectionName: string) => {
