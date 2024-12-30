@@ -31,19 +31,22 @@
   align-items: center;
   justify-content: space-between;
   padding-left: 8px;
-  background-color: var(--filter-background-color);
+  background-color: var(--root-background-color);
   border-radius: 8px;
 
+
   &:hover {
-    background-color: var(--filter-hover-border-color);
+    background-color: var(--root-background-color-hover);
   }
 }
 
 .selectedCollection {
   user-select: none;
+
 }
 
 .collectionOption {
+
   padding-left: 16px;
   border-radius: 4px;
   font-weight: 300;
@@ -63,7 +66,7 @@
 .updateButton {
   width: 26px;
   height: 26px;
-  background-color: var(--action-button-background-color);
+  background-color: var(--root-background-color);
   color: var(--action-button-color);
   border: 1px solid var(--action-button-border-color);
   border-radius: 8px;
@@ -71,7 +74,7 @@
   padding: 0;
 
   &:hover {
-    background-color: var(--action-button-background-color-hover);
+    background-color: var(--root-background-color-hover);
   }
 
   svg {

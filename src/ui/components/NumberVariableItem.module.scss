@@ -3,7 +3,7 @@
   align-items: center;
   margin-bottom: 8px;
   gap: 8px;
-  min-width: fit-content;
+  min-width: 0;
   border: 1px solid var(--color-row-border-color);
   padding: 4px 4px 4px 8px;
   border-radius: 8px;
@@ -20,10 +20,13 @@
   gap: 2px;
   align-items: center;
   flex-grow: 1;
+  min-width: 0;
   font-size: 12px;
 }
 
 .variableName {
+  flex-grow: 1;
+  min-width: 0;
   color: var(--filter-color-text);
   white-space: nowrap;
   overflow: hidden;
