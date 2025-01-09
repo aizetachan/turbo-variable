@@ -47,6 +47,8 @@ body {
     background: #a6a6a6;
   }
 
+  --scrollbar-color: #c9c9c9;
+
   --root-background-color: #fff;
   --root-background-color-hover: #f5f5f5;
 
@@ -94,6 +96,8 @@ body {
     background: #a6a6a6;
   }
 
+  --scrollbar-color: #737373;
+
   --root-background-color: #2c2c2c;
   --root-background-color-hover: #333;
 
@@ -104,7 +108,7 @@ body {
   --tabs-hover-background-color: #444;
 
   --filter-color-text: #fff;
-  --filter-background-color: #2C2C2C;
+  --filter-background-color: #2c2c2c;
   --filter-border-color: #444;
   --filter-outline-color: #4099ff;
   --filter-hover-border-color: #757575;
@@ -116,7 +120,7 @@ body {
   --title-library-group-color: #c5c5c5;
   --title-library-name-color: #757575;
 
-  --action-button-background-color: #383838 ;
+  --action-button-background-color: #383838;
   --action-button-background-color-hover: #757575;
   --action-button-color: #e6e6e6;
   --action-button-border-color: #444444;
@@ -128,4 +132,6 @@ body {
 
 #app-root {
   height: 100%;
+  background-color: var(--root-background-color);
+  overflow-x: hidden;
 }

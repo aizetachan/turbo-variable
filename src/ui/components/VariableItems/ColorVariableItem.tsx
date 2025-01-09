@@ -1,8 +1,8 @@
 import React from 'react';
-import styles from './ColorItem.module.scss';
-import Tooltip from './Tooltip';
-import FillActionButtonIcon from '../assets/fillActionButton.svg?component';
-import StrokeActionButtonIcon from '../assets/strokeActionButton.svg?component';
+import styles from './ColorVariable.module.scss';
+import Tooltip from '../Tooltip';
+import FillActionButtonIcon from '../../assets/fillActionButton.svg?component';
+import StrokeActionButtonIcon from '../../assets/strokeActionButton.svg?component';
 import { Color, VariableData } from '@ui/types';
 
 interface VariableItemProps {

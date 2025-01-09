@@ -26,6 +26,11 @@ export async function applyNumberVariable(
         } else if (action === 'paddingHorizontal' && node.type === 'FRAME') {
           node.setBoundVariable('paddingLeft', variable);
           node.setBoundVariable('paddingRight', variable);
+        } else if (action === 'paddingGeneral' && node.type === 'FRAME') {
+          node.setBoundVariable('paddingTop', variable);
+          node.setBoundVariable('paddingBottom', variable);
+          node.setBoundVariable('paddingLeft', variable);
+          node.setBoundVariable('paddingRight', variable);
         } else if (action === 'strokeWidth' && 'strokeWeight' in node) {
           node.setBoundVariable('strokeWeight', variable);
         }

@@ -7,12 +7,17 @@ export function processVariablesInChunks(
   callback: (variablesData: VariableData[]) => void
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
+    // flatten
     const allVariables = allGroupedVariables.flatMap((group) => group.variables);
+
+    // **Filter out** any that have scopes === [] or no scopes:
+    const validVariables = allVariables.filter((v) => v.scopes && v.scopes.length > 0);
+
     let currentIndex = 0;
     const variablesData: VariableData[] = [];
 
     function processNextChunk() {
-      const chunk = allVariables.slice(currentIndex, currentIndex + chunkSize);
+      const chunk = validVariables.slice(currentIndex, currentIndex + chunkSize);
       Promise.all(
         chunk.map(async (variable) => {
           const variableValue = await processVariableValue(variable);
@@ -33,7 +38,7 @@ export function processVariablesInChunks(
       )
         .then(() => {
           currentIndex += chunkSize;
-          if (currentIndex < allVariables.length) {
+          if (currentIndex < validVariables.length) {
             setTimeout(processNextChunk, 0);
           } else {
             callback(variablesData);

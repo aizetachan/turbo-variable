@@ -1,11 +1,10 @@
 import React from 'react';
 import styles from './NumberVariableItem.module.scss';
-import Tooltip from './Tooltip';
-import SpaceIcon from '../assets/spaceIcon.svg?component';
-import BorderRadiusIcon from '../assets/borderRadiusIcon.svg?component';
-import PaddingVerticalIcon from '../assets/paddingVerticalIcon.svg?component';
-import PaddingHorizontalIcon from '../assets/paddingHorizontalIcon.svg?component';
-import StrokeWidthIcon from '../assets/strokeWidthIcon.svg?component';
+import Tooltip from '../Tooltip';
+import SpaceIcon from '../../assets/spaceIcon.svg?component';
+import BorderRadiusIcon from '../../assets/borderRadiusIcon.svg?component';
+import PaddingGeneralIcon from '../../assets/paddingGeneral.svg?component';
+import StrokeWidthIcon from '../../assets/strokeWidthIcon.svg?component';
 import { VariableData } from '@ui/types';
 
 interface NumberVariableItemProps {
@@ -48,20 +47,14 @@ const NumberVariableItem: React.FC<NumberVariableItemProps> = ({ item }) => {
             <BorderRadiusIcon />
           </div>
         </Tooltip>
-        <Tooltip text="Padding Vertical">
+        <Tooltip text="Padding">
           <div
             className={styles.actionButton}
-            onClick={() => handleApplyVariable('paddingVertical')}>
-            <PaddingVerticalIcon />
+            onClick={() => handleApplyVariable('paddingGeneral')}>
+            <PaddingGeneralIcon />
           </div>
         </Tooltip>
-        <Tooltip text="Padding Horizontal">
-          <div
-            className={styles.actionButton}
-            onClick={() => handleApplyVariable('paddingHorizontal')}>
-            <PaddingHorizontalIcon />
-          </div>
-        </Tooltip>
+
         <Tooltip text="Stroke Width">
           <div className={styles.actionButton} onClick={() => handleApplyVariable('strokeWidth')}>
             <StrokeWidthIcon />

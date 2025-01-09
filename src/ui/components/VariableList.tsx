@@ -1,8 +1,10 @@
 import React from 'react';
-import ColorVariableItem from './ColorVariableItem';
+import ColorVariableItem from './VariableItems/ColorVariableItem';
 import styles from './ColorList.module.scss';
 import { VariableData } from '@ui/types';
-import NumberVariableItem from '@ui/components/NumberVariableItem';
+import NumberVariableItem from '@ui/components/VariableItems/NumberVariableItem';
+import 'overlayscrollbars/styles/overlayscrollbars.css';
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react';
 
 interface ColorListProps {
   items: VariableData[];
@@ -37,7 +39,10 @@ const VariableList: React.FC<ColorListProps> = ({ items, activeTab, collection }
   });
 
   return (
-    <div className={styles.colorList}>
+    <OverlayScrollbarsComponent
+      className={styles.colorList}
+      defer
+      options={{ scrollbars: { autoHide: 'scroll' } }}>
       {Object.keys(groupedItems).map((libraryName) => (
         <div key={libraryName}>
           {Object.keys(groupedItems[libraryName]).map((groupName) => (
@@ -59,7 +64,7 @@ const VariableList: React.FC<ColorListProps> = ({ items, activeTab, collection }
           ))}
         </div>
       ))}
-    </div>
+    </OverlayScrollbarsComponent>
   );
 };
 
