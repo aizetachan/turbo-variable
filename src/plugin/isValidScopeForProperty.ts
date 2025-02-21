@@ -1,4 +1,4 @@
-export async function isValidScopeForProperty(variable: Variable, action: any, node: SceneNode) {
+export const isValidScopeForProperty = async (variable: Variable, action: any, node: SceneNode) => {
   const { scopes } = variable;
 
   if (scopes.includes('ALL_SCOPES')) {
@@ -26,7 +26,7 @@ export async function isValidScopeForProperty(variable: Variable, action: any, n
     if (action === 'borderRadius' && 'cornerRadius' in node) {
       return scopes.includes('CORNER_RADIUS');
     }
-    if (action === 'padding' && node.type === 'FRAME') {
+    if (action.includes('padding') && node.type === 'FRAME') {
       return scopes.includes('GAP');
     }
     if (action === 'strokeWidth' && 'strokeWeight' in node) {
@@ -35,4 +35,4 @@ export async function isValidScopeForProperty(variable: Variable, action: any, n
   }
 
   return false;
-}
+};
