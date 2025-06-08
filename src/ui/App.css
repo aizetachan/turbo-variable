@@ -76,6 +76,12 @@ body {
   --action-button-color: #757575;
   --action-button-border-color: #cccccc;
 
+  --primary-button-background-color: #0d99ff;
+  --primary-button-background-color-hover: #0b87e7;
+  --primary-button-color: #fff;
+
+  --modal-overlay-background: rgba(0, 0, 0, 0.5);
+
   --alias-color: #000;
 
   --color-row-border-color: #e6e6e6;
@@ -124,6 +130,12 @@ body {
   --action-button-background-color-hover: #757575;
   --action-button-color: #e6e6e6;
   --action-button-border-color: #444444;
+
+  --primary-button-background-color: #4099ff;
+  --primary-button-background-color-hover: #3088ee;
+  --primary-button-color: #fff;
+
+  --modal-overlay-background: rgba(0, 0, 0, 0.7);
 
   --alias-color: #fff;
 
