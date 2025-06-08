@@ -148,3 +148,92 @@ For more information, refer to the official Figma documentation on [publishing p
 - Inspired by the need to efficiently manage variables and styles across multiple libraries in Figma.
 
 - Built using modern technologies like React and Vite for a responsive and intuitive user experience.
+
+# Figma Plugin - Turbo Variable
+
+A Figma plugin for applying variables efficiently with enhanced functionality.
+
+## Features
+
+- **Smart Number Variables**: Apply number variables to spacing, padding, border radius, and stroke width
+- **Auto Layout Integration**: Automatic detection and smart handling of Auto Layout requirements
+- **Scope Validation**: Proper validation of variable scopes for different properties
+- **Smooth UI**: Fixed dropdown positioning with smooth animations
+
+## Development
+
+### Prerequisites
+
+- Node.js (recommended version 18+)
+- Yarn package manager
+
+### Setup
+
+```bash
+# Install dependencies
+yarn install
+
+# Start development
+yarn dev
+
+# Build for production
+yarn build
+```
+
+### Git Hooks
+
+This project uses [Husky](https://typicode.github.io/husky/) for automated pre-commit checks:
+
+- **Linting**: Automatically runs ESLint on staged TypeScript/JavaScript files
+- **Auto-build**: Rebuilds the project when source files change
+- **Built files inclusion**: Automatically adds built files to commits
+
+The pre-commit hook will:
+1. 🔍 Check for staged files requiring linting
+2. 📝 Run linter on TypeScript/JavaScript files
+3. 🔨 Rebuild project if source files changed
+4. 📦 Add built files (`dist/`) to the commit
+
+This ensures that built files are always up-to-date with source changes, even when developing without opening the UI.
+
+### Project Structure
+
+```
+src/
+├── plugin/           # Figma plugin backend code
+├── ui/              # React UI components
+├── utils/           # Shared utilities
+└── common/          # Common types and helpers
+
+dist/                # Built files (auto-generated)
+├── index.html       # UI bundle
+├── plugin.js        # Plugin backend
+└── manifest.json    # Figma manifest
+```
+
+## Usage
+
+### Number Variables
+
+The plugin supports applying number variables to:
+
+- **Spacing**: Gap between elements in Auto Layout
+- **Padding**: Vertical, horizontal, or all-sides padding
+- **Border Radius**: Corner radius for all corners
+- **Stroke Width**: Border thickness with automatic dark stroke creation
+
+### Important Notes
+
+- **Auto Layout Required**: Spacing and padding variables require Auto Layout to be enabled
+- **Scope Compatibility**: For best results with padding, use variables with `ALL_SCOPES` instead of `GAP` scope
+- **Automatic Stroke**: When applying stroke width, a dark stroke is automatically created if none exists
+
+## Contributing
+
+1. Make your changes in `src/` directory
+2. The pre-commit hook will automatically build and include updated files
+3. Commit and push your changes
+
+## License
+
+[Add your license information here]
