@@ -6,9 +6,8 @@ class HistoryManager {
     currentIndex: -1
   };
 
-  private maxHistorySize = 50; // Максимальное количество действий в истории
+  private maxHistorySize = 50;
 
-  // Захватить состояние нода до изменения
   captureNodeState(node: SceneNode): NodeState {
     const state: NodeState = {
       nodeId: node.id,
@@ -16,7 +15,6 @@ class HistoryManager {
       boundVariables: {}
     };
 
-    // Сохраняем основные свойства в зависимости от типа нода
     if ('fills' in node) {
       state.properties.fills = node.fills ? JSON.parse(JSON.stringify(node.fills)) : [];
     }
@@ -44,7 +42,6 @@ class HistoryManager {
       state.properties.paddingRight = node.paddingRight;
     }
 
-    // Сохраняем привязанные переменные
     if ('boundVariables' in node && node.boundVariables) {
       state.boundVariables = JSON.parse(JSON.stringify(node.boundVariables));
     }
@@ -52,13 +49,11 @@ class HistoryManager {
     return state;
   }
 
-  // Восстановить состояние нода
   async restoreNodeState(nodeState: NodeState): Promise<boolean> {
     try {
       const node = await figma.getNodeByIdAsync(nodeState.nodeId);
       if (!node) return false;
 
-      // Восстанавливаем основные свойства
       const props = nodeState.properties;
 
       if ('fills' in node && props.fills !== undefined) {
@@ -93,11 +88,9 @@ class HistoryManager {
         if (props.paddingRight !== undefined) node.paddingRight = props.paddingRight;
       }
 
-      // Восстанавливаем привязанные переменные
       if ('setBoundVariable' in node && nodeState.boundVariables) {
         const boundVars = nodeState.boundVariables;
 
-        // Очищаем все привязки
         for (const key in boundVars) {
           try {
             if (boundVars[key] === null) {
@@ -121,16 +114,12 @@ class HistoryManager {
     }
   }
 
-  // Добавить действие в историю
   addAction(action: HistoryAction): void {
-    // Удаляем все действия после текущего индекса (для случая когда мы были в середине истории)
     this.history.actions = this.history.actions.slice(0, this.history.currentIndex + 1);
 
-    // Добавляем новое действие
     this.history.actions.push(action);
     this.history.currentIndex = this.history.actions.length - 1;
 
-    // Ограничиваем размер истории
     if (this.history.actions.length > this.maxHistorySize) {
       this.history.actions.shift();
       this.history.currentIndex--;
@@ -139,17 +128,50 @@ class HistoryManager {
     this.notifyHistoryChanged();
   }
 
-  // Отменить последнее действие
   async undo(): Promise<boolean> {
     if (!this.canUndo()) return false;
 
     const action = this.history.actions[this.history.currentIndex];
     let success = true;
 
-    // Восстанавливаем состояние до изменения
-    for (const nodeState of action.beforeState) {
-      const restored = await this.restoreNodeState(nodeState);
-      if (!restored) success = false;
+    for (let i = 0; i < action.afterState.length; i++) {
+      const afterState = action.afterState[i];
+      const beforeState = action.beforeState[i];
+
+      if (afterState.frameCreated && afterState.originalNodeId) {
+        try {
+          const createdFrame = (await figma.getNodeByIdAsync(afterState.nodeId)) as SceneNode;
+          const originalNode = (await figma.getNodeByIdAsync(
+            afterState.originalNodeId
+          )) as SceneNode;
+
+          if (
+            createdFrame &&
+            originalNode &&
+            createdFrame.parent &&
+            'x' in createdFrame &&
+            'x' in originalNode
+          ) {
+            const frameParent = createdFrame.parent;
+            const frameIndex = frameParent.children.indexOf(createdFrame);
+
+            frameParent.insertChild(frameIndex, originalNode);
+
+            (originalNode as any).x = (createdFrame as any).x;
+            (originalNode as any).y = (createdFrame as any).y;
+
+            createdFrame.remove();
+
+            await this.restoreNodeState(beforeState);
+          }
+        } catch (error) {
+          console.error('Failed to undo frame creation:', error);
+          success = false;
+        }
+      } else {
+        const restored = await this.restoreNodeState(beforeState);
+        if (!restored) success = false;
+      }
     }
 
     if (success) {
@@ -163,17 +185,56 @@ class HistoryManager {
     return success;
   }
 
-  // Повторить следующее действие
   async redo(): Promise<boolean> {
     if (!this.canRedo()) return false;
 
     const action = this.history.actions[this.history.currentIndex + 1];
     let success = true;
 
-    // Восстанавливаем состояние после изменения
-    for (const nodeState of action.afterState) {
-      const restored = await this.restoreNodeState(nodeState);
-      if (!restored) success = false;
+    // Специальная обработка для созданных фреймов
+    for (let i = 0; i < action.afterState.length; i++) {
+      const afterState = action.afterState[i];
+
+      if (afterState.frameCreated && afterState.originalNodeId) {
+        // Нужно пересоздать фрейм и поместить в него оригинальный нод
+        try {
+          const originalNode = (await figma.getNodeByIdAsync(
+            afterState.originalNodeId
+          )) as SceneNode;
+
+          if (originalNode && originalNode.parent && 'x' in originalNode) {
+            // Создаем новый фрейм
+            const newFrame = figma.createFrame();
+            newFrame.name = afterState.properties.name || `${originalNode.name} Frame`;
+
+            // Устанавливаем позицию и размер фрейма
+            newFrame.x = (originalNode as any).x;
+            newFrame.y = (originalNode as any).y;
+            newFrame.resize(originalNode.width, originalNode.height);
+
+            // Вставляем фрейм в то же место где был оригинальный нод
+            const parent = originalNode.parent;
+            const nodeIndex = parent.children.indexOf(originalNode);
+            parent.insertChild(nodeIndex, newFrame);
+
+            // Перемещаем оригинальный нод в фрейм
+            newFrame.appendChild(originalNode);
+            (originalNode as any).x = 0;
+            (originalNode as any).y = 0;
+
+            // Восстанавливаем состояние фрейма
+            const frameStateToRestore = { ...afterState, nodeId: newFrame.id };
+            await this.restoreNodeState(frameStateToRestore);
+          }
+        } catch (error) {
+          console.error('Failed to redo frame creation:', error);
+          success = false;
+        }
+      } else {
+        // Обычное восстановление состояния
+        const restored = await this.restoreNodeState(afterState);
+        if (!restored) success = false;
+      }
     }
 
     if (success) {
@@ -186,18 +247,12 @@ class HistoryManager {
 
     return success;
   }
-
-  // Проверить возможность отмены
   canUndo(): boolean {
     return this.history.currentIndex >= 0;
   }
-
-  // Проверить возможность повтора
   canRedo(): boolean {
     return this.history.currentIndex < this.history.actions.length - 1;
   }
-
-  // Получить информацию о состоянии истории
   getHistoryInfo() {
     return {
       canUndo: this.canUndo(),
@@ -212,15 +267,11 @@ class HistoryManager {
       totalActions: this.history.actions.length
     };
   }
-
-  // Очистить историю
   clearHistory(): void {
     this.history.actions = [];
     this.history.currentIndex = -1;
     this.notifyHistoryChanged();
   }
-
-  // Уведомить UI об изменении истории
   private notifyHistoryChanged(): void {
     figma.ui.postMessage({
       type: 'history-changed',

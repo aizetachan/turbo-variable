@@ -11,7 +11,6 @@ export async function applyColorVariable(
     try {
       let applied = false;
 
-      // Захватываем состояние до изменения для истории
       const beforeStates = nodes.map((node) => historyManager.captureNodeState(node));
 
       for (const node of nodes) {
@@ -75,7 +74,6 @@ export async function applyColorVariable(
       }
 
       if (applied) {
-        // Захватываем состояние после изменения и сохраняем в историю
         const afterStates = nodes.map((node) => historyManager.captureNodeState(node));
 
         const actionDescription = `Apply ${variable.name} (${action})`;

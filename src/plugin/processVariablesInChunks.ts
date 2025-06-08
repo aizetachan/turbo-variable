@@ -7,10 +7,8 @@ export function processVariablesInChunks(
   callback: (variablesData: VariableData[]) => void
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    // flatten
     const allVariables = allGroupedVariables.flatMap((group) => group.variables);
 
-    // **Filter out** any that have scopes === [] or no scopes:
     const validVariables = allVariables.filter((v) => v.scopes && v.scopes.length > 0);
 
     let currentIndex = 0;

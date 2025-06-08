@@ -234,10 +234,19 @@ export const applyNumberVariable = async (
 ) => {
   let resultMessage = '';
 
-  // Захватываем состояние до изменения для истории
-  const beforeStates = nodes.map((node) => historyManager.captureNodeState(node));
+  interface NodeHistoryInfo {
+    originalNode: SceneNode;
+    beforeState: any;
+    finalNode: SceneNode;
+    afterState?: any;
+    frameCreated: boolean;
+  }
+
+  const nodeHistories: NodeHistoryInfo[] = [];
 
   for (const node of nodes) {
+    const beforeState = historyManager.captureNodeState(node);
+
     const isValidScope = await isValidScopeForProperty(variable, action, node);
 
     if (!isValidScope) {
@@ -255,6 +264,15 @@ export const applyNumberVariable = async (
       resultMessage = message;
       continue;
     }
+
+    const nodeHistory: NodeHistoryInfo = {
+      originalNode: node,
+      beforeState: beforeState,
+      finalNode: updatedNode,
+      frameCreated: updatedNode !== node
+    };
+
+    nodeHistories.push(nodeHistory);
 
     const { isCompatible, warning } = checkScopeCompatibility(variable, action);
     if (!isCompatible) {
@@ -361,11 +379,20 @@ export const applyNumberVariable = async (
       default:
         resultMessage = '🚨 Unknown action.';
     }
+
+    const afterState = historyManager.captureNodeState(updatedNode);
+
+    if (nodeHistory.frameCreated) {
+      afterState.frameCreated = true;
+      afterState.originalNodeId = node.id;
+    }
+
+    nodeHistory.afterState = afterState;
   }
 
-  // Захватываем состояние после изменения и сохраняем в историю
-  if (resultMessage.includes('✅')) {
-    const afterStates = nodes.map((node) => historyManager.captureNodeState(node));
+  if (resultMessage.includes('✅') && nodeHistories.length > 0) {
+    const beforeStates = nodeHistories.map((info) => info.beforeState);
+    const afterStates = nodeHistories.map((info) => info.afterState);
 
     const actionDescription = `Apply ${variable.name} (${action})`;
 

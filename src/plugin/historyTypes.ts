@@ -2,6 +2,10 @@ export interface NodeState {
   nodeId: string;
   properties: Record<string, any>;
   boundVariables?: Record<string, any>;
+  parentId?: string;
+  index?: number;
+  frameCreated?: boolean;
+  originalNodeId?: string;
 }
 
 export interface HistoryAction {
@@ -18,5 +22,5 @@ export interface HistoryAction {
 
 export interface HistoryState {
   actions: HistoryAction[];
-  currentIndex: number; // -1 means no actions, 0+ means position in history
+  currentIndex: number;
 }

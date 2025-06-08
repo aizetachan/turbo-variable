@@ -147,7 +147,6 @@ const App: React.FC = () => {
     document.body.classList.add(isDark ? 'dark' : 'light');
     mediaQuery.addEventListener('change', handleThemeChange);
 
-    // Обработчик клавиатурных сочетаний для undo/redo
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
