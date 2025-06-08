@@ -5,6 +5,7 @@ import CollectionsSelector from './components/CollectionsSelector';
 import VariableList from './components/VariableList';
 import LoadingSpinner from './components/LoadingSpinner';
 import { ConfirmationModal } from './components/ConfirmationModal';
+import { HistoryPanel } from './components/HistoryPanel';
 import { VariableData, ConfirmationRequest, ConfirmationResponse } from '@ui/types';
 import './App.css';
 
@@ -18,6 +19,14 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [confirmationRequest, setConfirmationRequest] = useState<ConfirmationRequest | null>(null);
   const [historyInfo, setHistoryInfo] = useState({ canUndo: false, canRedo: false });
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+  const [fullHistoryInfo, setFullHistoryInfo] = useState({
+    actions: [],
+    currentIndex: -1,
+    canUndo: false,
+    canRedo: false,
+    totalActions: 0
+  });
 
   const filterValueRef = useRef(filterValue);
   const selectedCollectionRef = useRef(selectedCollection);
@@ -100,6 +109,22 @@ const App: React.FC = () => {
     }
   };
 
+  const handleJumpToAction = (index: number) => {
+    parent.postMessage({ pluginMessage: { type: 'jump-to-action', index } }, '*');
+    setIsHistoryPanelOpen(false);
+  };
+
+  const handleCloseHistoryPanel = () => {
+    setIsHistoryPanelOpen(false);
+  };
+
+  const handleSecretHistoryTrigger = () => {
+    if (!isHistoryPanelOpen) {
+      parent.postMessage({ pluginMessage: { type: 'get-full-history' } }, '*');
+    }
+    setIsHistoryPanelOpen(!isHistoryPanelOpen);
+  };
+
   useEffect(() => {
     window.onmessage = (event) => {
       const { pluginMessage } = event.data;
@@ -127,6 +152,10 @@ const App: React.FC = () => {
 
       if (pluginMessage.type === 'history-changed') {
         setHistoryInfo(pluginMessage.historyInfo);
+      }
+
+      if (pluginMessage.type === 'full-history-response') {
+        setFullHistoryInfo(pluginMessage.historyInfo);
       }
     };
   }, [activeTab]);
@@ -170,12 +199,16 @@ const App: React.FC = () => {
       mediaQuery.removeEventListener('change', handleThemeChange);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [historyInfo]);
+  }, [historyInfo.canRedo, historyInfo.canUndo, isHistoryPanelOpen]);
 
   return (
     <div id="app-root">
       <div className={'stickyHeader'}>
-        <Tabs activeTab={activeTab} setActiveTab={handleActiveTabChange} />
+        <Tabs
+          activeTab={activeTab}
+          setActiveTab={handleActiveTabChange}
+          onSecretTrigger={handleSecretHistoryTrigger}
+        />
         <CollectionsSelector
           collections={collections}
           selectedCollection={selectedCollection}
@@ -198,6 +231,12 @@ const App: React.FC = () => {
         cancelText={confirmationRequest?.cancelText}
         onConfirm={() => handleConfirmation(true)}
         onCancel={() => handleConfirmation(false)}
+      />
+      <HistoryPanel
+        isOpen={isHistoryPanelOpen}
+        historyInfo={fullHistoryInfo}
+        onClose={handleCloseHistoryPanel}
+        onJumpToAction={handleJumpToAction}
       />
     </div>
   );

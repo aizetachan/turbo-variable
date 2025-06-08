@@ -85,6 +85,19 @@ body {
   --alias-color: #000;
 
   --color-row-border-color: #e6e6e6;
+
+  /* Figma-style variables */
+  --figma-color-border: #e6e6e6;
+  --figma-color-border-light: #f0f0f0;
+  --figma-color-bg-secondary: #f9f9f9;
+  --figma-color-bg-hover: #f5f5f5;
+  --figma-color-bg-brand: #0066cc;
+  --figma-color-bg-brand-secondary: #e6f2ff;
+  --figma-color-text-secondary: #666666;
+  --figma-color-text-onbrand: #ffffff;
+  --figma-color-bg: #ffffff;
+  --figma-color-shadow: rgba(0, 0, 0, 0.15);
+  --figma-color-shadow-light: rgba(0, 0, 0, 0.1);
 }
 
 .dark {
@@ -140,6 +153,19 @@ body {
   --alias-color: #fff;
 
   --color-row-border-color: #444444;
+
+  /* Figma-style variables for dark theme */
+  --figma-color-border: #444444;
+  --figma-color-border-light: #3a3a3a;
+  --figma-color-bg-secondary: #383838;
+  --figma-color-bg-hover: #404040;
+  --figma-color-bg-brand: #4099ff;
+  --figma-color-bg-brand-secondary: #1a3d5c;
+  --figma-color-text-secondary: #c5c5c5;
+  --figma-color-text-onbrand: #ffffff;
+  --figma-color-bg: #2c2c2c;
+  --figma-color-shadow: rgba(0, 0, 0, 0.3);
+  --figma-color-shadow-light: rgba(0, 0, 0, 0.2);
 }
 
 #app-root {

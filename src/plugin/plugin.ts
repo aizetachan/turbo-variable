@@ -67,6 +67,23 @@ figma.ui.onmessage = async (msg) => {
     await historyManager.undo();
   } else if (msg.type === 'redo') {
     await historyManager.redo();
+  } else if (msg.type === 'get-full-history') {
+    const historyInfo = historyManager.getFullHistoryInfo();
+    figma.ui.postMessage({
+      type: 'full-history-response',
+      historyInfo
+    });
+  } else if (msg.type === 'jump-to-action') {
+    const success = await historyManager.jumpToAction(msg.index);
+    if (success) {
+      if (msg.index === -1) {
+        figma.notify('⭐ Jumped to initial state');
+      } else {
+        figma.notify(`↶ Jumped to action ${msg.index + 1}`);
+      }
+    } else {
+      figma.notify('⚠️ Failed to jump to action');
+    }
   }
 };
 

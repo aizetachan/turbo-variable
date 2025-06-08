@@ -191,38 +191,31 @@ class HistoryManager {
     const action = this.history.actions[this.history.currentIndex + 1];
     let success = true;
 
-    // Специальная обработка для созданных фреймов
     for (let i = 0; i < action.afterState.length; i++) {
       const afterState = action.afterState[i];
 
       if (afterState.frameCreated && afterState.originalNodeId) {
-        // Нужно пересоздать фрейм и поместить в него оригинальный нод
         try {
           const originalNode = (await figma.getNodeByIdAsync(
             afterState.originalNodeId
           )) as SceneNode;
 
           if (originalNode && originalNode.parent && 'x' in originalNode) {
-            // Создаем новый фрейм
             const newFrame = figma.createFrame();
             newFrame.name = afterState.properties.name || `${originalNode.name} Frame`;
 
-            // Устанавливаем позицию и размер фрейма
             newFrame.x = (originalNode as any).x;
             newFrame.y = (originalNode as any).y;
             newFrame.resize(originalNode.width, originalNode.height);
 
-            // Вставляем фрейм в то же место где был оригинальный нод
             const parent = originalNode.parent;
             const nodeIndex = parent.children.indexOf(originalNode);
             parent.insertChild(nodeIndex, newFrame);
 
-            // Перемещаем оригинальный нод в фрейм
             newFrame.appendChild(originalNode);
             (originalNode as any).x = 0;
             (originalNode as any).y = 0;
 
-            // Восстанавливаем состояние фрейма
             const frameStateToRestore = { ...afterState, nodeId: newFrame.id };
             await this.restoreNodeState(frameStateToRestore);
           }
@@ -231,7 +224,6 @@ class HistoryManager {
           success = false;
         }
       } else {
-        // Обычное восстановление состояния
         const restored = await this.restoreNodeState(afterState);
         if (!restored) success = false;
       }
@@ -266,6 +258,42 @@ class HistoryManager {
         : null,
       totalActions: this.history.actions.length
     };
+  }
+
+  getFullHistoryInfo() {
+    return {
+      actions: this.history.actions,
+      currentIndex: this.history.currentIndex,
+      canUndo: this.canUndo(),
+      canRedo: this.canRedo(),
+      totalActions: this.history.actions.length
+    };
+  }
+
+  async jumpToAction(targetIndex: number): Promise<boolean> {
+    if (targetIndex < -1 || targetIndex >= this.history.actions.length) {
+      return false;
+    }
+
+    const currentIndex = this.history.currentIndex;
+
+    if (targetIndex === currentIndex) {
+      return true;
+    }
+
+    if (targetIndex < currentIndex) {
+      while (this.history.currentIndex > targetIndex) {
+        const success = await this.undo();
+        if (!success) return false;
+      }
+    } else {
+      while (this.history.currentIndex < targetIndex) {
+        const success = await this.redo();
+        if (!success) return false;
+      }
+    }
+
+    return true;
   }
   clearHistory(): void {
     this.history.actions = [];
