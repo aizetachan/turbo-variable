@@ -11,6 +11,7 @@ interface DropdownPortalProps {
 
 const DropdownPortal: FC<DropdownPortalProps> = ({ triggerRef, isOpen, onClickAway, children }) => {
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  const [isPositionCalculated, setIsPositionCalculated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const updatePosition = useCallback(() => {
@@ -21,16 +22,36 @@ const DropdownPortal: FC<DropdownPortalProps> = ({ triggerRef, isOpen, onClickAw
         left: rect.left,
         width: rect.width
       });
+      setIsPositionCalculated(true);
     }
   }, [triggerRef]);
 
   useEffect(() => {
     if (isOpen) {
-      updatePosition();
+      setIsPositionCalculated(false);
+      requestAnimationFrame(() => {
+        updatePosition();
+      });
+    } else {
+      setIsPositionCalculated(false);
     }
   }, [isOpen, updatePosition]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleResize = () => {
+      setIsPositionCalculated(false);
+      requestAnimationFrame(() => {
+        updatePosition();
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen, updatePosition]);
+
+  if (!isOpen || !isPositionCalculated) return null;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
