@@ -27,6 +27,10 @@ export const isValidScopeForProperty = async (variable: Variable, action: any, n
       return scopes.includes('CORNER_RADIUS');
     }
     if (action.includes('padding') && node.type === 'FRAME') {
+      const frameNode = node as FrameNode;
+      if (frameNode.layoutMode === 'NONE') {
+        return false;
+      }
       return scopes.includes('GAP');
     }
     if (action === 'strokeWidth' && 'strokeWeight' in node) {
