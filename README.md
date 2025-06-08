@@ -156,7 +156,8 @@ A Figma plugin for applying variables efficiently with enhanced functionality.
 ## Features
 
 - **Smart Number Variables**: Apply number variables to spacing, padding, border radius, and stroke width
-- **Auto Layout Integration**: Automatic detection and smart handling of Auto Layout requirements
+- **Auto-Fix Functionality**: Automatically creates frames and enables Auto Layout when needed
+- **Intelligent Problem Solving**: No more cryptic error messages - the plugin fixes issues automatically
 - **Scope Validation**: Proper validation of variable scopes for different properties
 - **Smooth UI**: Fixed dropdown positioning with smooth animations
 
@@ -222,11 +223,17 @@ The plugin supports applying number variables to:
 - **Border Radius**: Corner radius for all corners
 - **Stroke Width**: Border thickness with automatic dark stroke creation
 
+### Smart Auto-Fix Features
+
+- **Auto Frame Creation**: If you try to apply spacing/padding to a non-frame element, the plugin automatically wraps it in a frame
+- **Auto Layout Enabling**: Missing Auto Layout? The plugin enables it automatically with optimal direction
+- **Intelligent Direction**: Analyzes child element positions to choose the best Auto Layout direction
+- **Automatic Stroke**: When applying stroke width, a dark stroke is automatically created if none exists
+
 ### Important Notes
 
-- **Auto Layout Required**: Spacing and padding variables require Auto Layout to be enabled
 - **Scope Compatibility**: For best results with padding, use variables with `ALL_SCOPES` instead of `GAP` scope
-- **Automatic Stroke**: When applying stroke width, a dark stroke is automatically created if none exists
+- **Selection Updates**: When frames are created automatically, selection updates to the new frame
 
 ## Contributing
 

@@ -3,36 +3,127 @@ import { isValidScopeForProperty } from '@plugin/isValidScopeForProperty';
 /**
  * Apply number variables to Figma nodes with enhanced functionality:
  * - For stroke: Always creates a visible dark stroke if none exists
- * - For spacing/gap: Checks for Auto Layout and notifies user if not present
+ * - For spacing/gap: Checks for Auto Layout and offers solutions
+ * - Smart frame creation and Auto Layout enabling
  */
 
-const checkAutoLayoutRequired = (
+const createFrameFromNode = (node: SceneNode): FrameNode => {
+  const frame = figma.createFrame();
+  frame.name = `${node.name} Frame`;
+
+  // Copy basic properties
+  frame.x = node.x;
+  frame.y = node.y;
+  frame.resize(node.width, node.height);
+
+  // Insert frame in the same parent and position
+  const parent = node.parent;
+  const nodeIndex = parent?.children.indexOf(node) ?? 0;
+
+  if (parent) {
+    parent.insertChild(nodeIndex, frame);
+  }
+
+  // Move original node into frame
+  frame.appendChild(node);
+  node.x = 0;
+  node.y = 0;
+
+  // Enable Auto Layout
+  frame.layoutMode = 'HORIZONTAL';
+  frame.layoutSizingHorizontal = 'HUG';
+  frame.layoutSizingVertical = 'HUG';
+  frame.paddingTop = 0;
+  frame.paddingBottom = 0;
+  frame.paddingLeft = 0;
+  frame.paddingRight = 0;
+
+  return frame;
+};
+
+const enableAutoLayout = (frame: FrameNode): void => {
+  // Determine best layout direction based on children
+  let layoutDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL';
+
+  if (frame.children.length >= 2) {
+    const firstChild = frame.children[0];
+    const secondChild = frame.children[1];
+
+    const horizontalDistance = Math.abs(firstChild.x - secondChild.x);
+    const verticalDistance = Math.abs(firstChild.y - secondChild.y);
+
+    layoutDirection = horizontalDistance > verticalDistance ? 'HORIZONTAL' : 'VERTICAL';
+  }
+
+  frame.layoutMode = layoutDirection;
+  frame.layoutSizingHorizontal = 'HUG';
+  frame.layoutSizingVertical = 'HUG';
+};
+
+const checkAndFixNodeRequirements = async (
   node: SceneNode,
   action: string
-): { hasAutoLayout: boolean; message: string } => {
-  if ('layoutMode' in node) {
-    if (node.layoutMode === 'NONE') {
-      let actionName = '';
-      switch (action) {
-        case 'spaceBetween':
-          actionName = 'spacing';
-          break;
-        case 'paddingVertical':
-        case 'paddingHorizontal':
-        case 'paddingGeneral':
-          actionName = 'padding';
-          break;
-        default:
-          actionName = 'this property';
+): Promise<{ success: boolean; node: SceneNode; message: string }> => {
+  // For spacing/padding actions, we need a frame with Auto Layout
+  if (['spaceBetween', 'paddingVertical', 'paddingHorizontal', 'paddingGeneral'].includes(action)) {
+    // Case 1: Not a frame at all
+    if (!('layoutMode' in node)) {
+      const actionName = action.includes('padding') ? 'padding' : 'spacing';
+
+      try {
+        const newFrame = createFrameFromNode(node);
+        figma.currentPage.selection = [newFrame];
+
+        return {
+          success: true,
+          node: newFrame,
+          message: `✨ Created frame with Auto Layout for ${actionName}. Original node moved inside.`
+        };
+      } catch (error) {
+        return {
+          success: false,
+          node,
+          message: `🚨 ${actionName} requires a frame. Please manually wrap this element in a frame and enable Auto Layout.`
+        };
       }
-      return {
-        hasAutoLayout: false,
-        message: `🚨 Auto Layout required for ${actionName}. Please enable Auto Layout on this frame manually.`
-      };
     }
-    return { hasAutoLayout: true, message: '' };
+
+    // Case 2: It's a frame but no Auto Layout
+    const frameNode = node as FrameNode;
+    if (frameNode.layoutMode === 'NONE') {
+      const actionName = action.includes('padding') ? 'padding' : 'spacing';
+
+      try {
+        enableAutoLayout(frameNode);
+
+        return {
+          success: true,
+          node: frameNode,
+          message: `✨ Auto Layout enabled for ${actionName}.`
+        };
+      } catch (error) {
+        return {
+          success: false,
+          node,
+          message: `🚨 Could not enable Auto Layout. Please enable it manually for ${actionName}.`
+        };
+      }
+    }
+
+    // Case 3: Frame with Auto Layout - all good!
+    return {
+      success: true,
+      node,
+      message: ''
+    };
   }
-  return { hasAutoLayout: false, message: '🚨 Node must be a frame to apply spacing properties.' };
+
+  // For other actions, current node is fine
+  return {
+    success: true,
+    node,
+    message: ''
+  };
 };
 
 const applyPadding = (
@@ -136,15 +227,10 @@ export const applyNumberVariable = async (
       continue;
     }
 
-    if (
-      ['spaceBetween', 'paddingVertical', 'paddingHorizontal', 'paddingGeneral'].includes(action)
-    ) {
-      const { hasAutoLayout, message } = checkAutoLayoutRequired(node, action);
-      if (!hasAutoLayout) {
-        figma.notify(message);
-        return;
-      }
-      resultMessage += message;
+    const { success, node: updatedNode, message } = await checkAndFixNodeRequirements(node, action);
+    if (!success) {
+      resultMessage = message;
+      continue;
     }
 
     const { isCompatible, warning } = checkScopeCompatibility(variable, action);
@@ -154,22 +240,18 @@ export const applyNumberVariable = async (
 
     switch (action) {
       case 'spaceBetween':
-        node.setBoundVariable('itemSpacing', variable);
-        resultMessage = '✅ Spacing variable applied correctly.';
+        updatedNode.setBoundVariable('itemSpacing', variable);
+        resultMessage = message
+          ? `✅ Spacing variable applied correctly. ${message}`
+          : '✅ Spacing variable applied correctly.';
         break;
       case 'borderRadius':
-        applyBorderRadius(node, variable);
+        applyBorderRadius(updatedNode, variable);
         resultMessage = '✅ Border radius variable applied correctly.';
         break;
       case 'paddingVertical':
-        if (node.type === 'FRAME') {
-          const frameNode = node as FrameNode;
-
-          if (frameNode.layoutMode === 'NONE') {
-            resultMessage =
-              '🚨 Auto Layout required for padding. Please enable Auto Layout on this frame manually.';
-            break;
-          }
+        if (updatedNode.type === 'FRAME') {
+          const frameNode = updatedNode as FrameNode;
 
           try {
             applyPadding(frameNode, variable, 'vertical');
@@ -179,7 +261,9 @@ export const applyNumberVariable = async (
               boundVars?.paddingTop?.id === variable.id ||
               boundVars?.paddingBottom?.id === variable.id
             ) {
-              resultMessage = '✅ Vertical padding variable applied correctly.';
+              resultMessage = message
+                ? `✅ Vertical padding variable applied correctly. ${message}`
+                : '✅ Vertical padding variable applied correctly.';
               if (warning) resultMessage += '\n💡 ' + warning;
             } else {
               resultMessage =
@@ -192,14 +276,8 @@ export const applyNumberVariable = async (
         }
         break;
       case 'paddingHorizontal':
-        if (node.type === 'FRAME') {
-          const frameNode = node as FrameNode;
-
-          if (frameNode.layoutMode === 'NONE') {
-            resultMessage =
-              '🚨 Auto Layout required for padding. Please enable Auto Layout on this frame manually.';
-            break;
-          }
+        if (updatedNode.type === 'FRAME') {
+          const frameNode = updatedNode as FrameNode;
 
           try {
             applyPadding(frameNode, variable, 'horizontal');
@@ -209,7 +287,9 @@ export const applyNumberVariable = async (
               boundVars?.paddingLeft?.id === variable.id ||
               boundVars?.paddingRight?.id === variable.id
             ) {
-              resultMessage = '✅ Horizontal padding variable applied correctly.';
+              resultMessage = message
+                ? `✅ Horizontal padding variable applied correctly. ${message}`
+                : '✅ Horizontal padding variable applied correctly.';
               if (warning) resultMessage += '\n💡 ' + warning;
             } else {
               resultMessage =
@@ -222,14 +302,8 @@ export const applyNumberVariable = async (
         }
         break;
       case 'paddingGeneral':
-        if (node.type === 'FRAME') {
-          const frameNode = node as FrameNode;
-
-          if (frameNode.layoutMode === 'NONE') {
-            resultMessage =
-              '🚨 Auto Layout required for padding. Please enable Auto Layout on this frame manually.';
-            break;
-          }
+        if (updatedNode.type === 'FRAME') {
+          const frameNode = updatedNode as FrameNode;
 
           try {
             applyPadding(frameNode, variable, 'general');
@@ -241,7 +315,9 @@ export const applyNumberVariable = async (
               boundVars?.paddingLeft?.id === variable.id ||
               boundVars?.paddingRight?.id === variable.id
             ) {
-              resultMessage = '✅ Padding variable applied to all sides correctly.';
+              resultMessage = message
+                ? `✅ Padding variable applied to all sides correctly. ${message}`
+                : '✅ Padding variable applied to all sides correctly.';
               if (warning) resultMessage += '\n💡 ' + warning;
             } else {
               resultMessage =
@@ -254,13 +330,13 @@ export const applyNumberVariable = async (
         }
         break;
       case 'strokeWidth':
-        if ('strokes' in node) {
-          applyStrokeWeight(node, variable);
+        if ('strokes' in updatedNode) {
+          applyStrokeWeight(updatedNode, variable);
           resultMessage = '✅ Stroke variable applied with dark border.';
         }
         break;
       default:
-        resultMessage = '🚨 Unknown action.';
+        resultMessage = '�� Unknown action.';
     }
   }
 
