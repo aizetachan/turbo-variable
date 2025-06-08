@@ -22,3 +22,16 @@ export interface VariablesWithMetaInfoType {
   collectionName: string;
   variables: Variable[];
 }
+
+export interface ConfirmationRequest {
+  id: string;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+}
+
+export interface ConfirmationResponse {
+  id: string;
+  confirmed: boolean;
+}

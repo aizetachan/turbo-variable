@@ -1,4 +1,5 @@
 import { isValidScopeForProperty } from '@plugin/isValidScopeForProperty';
+import { confirmationManager } from '@plugin/confirmationManager';
 
 /**
  * Apply number variables to Figma nodes with enhanced functionality:
@@ -11,12 +12,10 @@ const createFrameFromNode = (node: SceneNode): FrameNode => {
   const frame = figma.createFrame();
   frame.name = `${node.name} Frame`;
 
-  // Copy basic properties
   frame.x = node.x;
   frame.y = node.y;
   frame.resize(node.width, node.height);
 
-  // Insert frame in the same parent and position
   const parent = node.parent;
   const nodeIndex = parent?.children.indexOf(node) ?? 0;
 
@@ -24,12 +23,10 @@ const createFrameFromNode = (node: SceneNode): FrameNode => {
     parent.insertChild(nodeIndex, frame);
   }
 
-  // Move original node into frame
   frame.appendChild(node);
   node.x = 0;
   node.y = 0;
 
-  // Enable Auto Layout
   frame.layoutMode = 'HORIZONTAL';
   frame.layoutSizingHorizontal = 'HUG';
   frame.layoutSizingVertical = 'HUG';
@@ -42,7 +39,6 @@ const createFrameFromNode = (node: SceneNode): FrameNode => {
 };
 
 const enableAutoLayout = (frame: FrameNode): void => {
-  // Determine best layout direction based on children
   let layoutDirection: 'HORIZONTAL' | 'VERTICAL' = 'HORIZONTAL';
 
   if (frame.children.length >= 2) {
@@ -64,11 +60,24 @@ const checkAndFixNodeRequirements = async (
   node: SceneNode,
   action: string
 ): Promise<{ success: boolean; node: SceneNode; message: string }> => {
-  // For spacing/padding actions, we need a frame with Auto Layout
   if (['spaceBetween', 'paddingVertical', 'paddingHorizontal', 'paddingGeneral'].includes(action)) {
-    // Case 1: Not a frame at all
     if (!('layoutMode' in node)) {
       const actionName = action.includes('padding') ? 'padding' : 'spacing';
+
+      const confirmed = await confirmationManager.showConfirmation(
+        `Create Frame for ${actionName}?`,
+        `This element needs to be wrapped in a frame to apply ${actionName} variables. Should I create a frame and move this element inside?`,
+        'Yes, create frame',
+        'Cancel'
+      );
+
+      if (!confirmed) {
+        return {
+          success: false,
+          node,
+          message: `❌ ${actionName} requires a frame. Operation cancelled.`
+        };
+      }
 
       try {
         const newFrame = createFrameFromNode(node);
@@ -83,15 +92,29 @@ const checkAndFixNodeRequirements = async (
         return {
           success: false,
           node,
-          message: `🚨 ${actionName} requires a frame. Please manually wrap this element in a frame and enable Auto Layout.`
+          message: `🚨 Failed to create frame. Please manually wrap this element in a frame and enable Auto Layout.`
         };
       }
     }
 
-    // Case 2: It's a frame but no Auto Layout
     const frameNode = node as FrameNode;
     if (frameNode.layoutMode === 'NONE') {
       const actionName = action.includes('padding') ? 'padding' : 'spacing';
+
+      const confirmed = await confirmationManager.showConfirmation(
+        `Enable Auto Layout for ${actionName}?`,
+        `This frame needs Auto Layout to apply ${actionName} variables. Should I enable Auto Layout?`,
+        'Yes, enable Auto Layout',
+        'Cancel'
+      );
+
+      if (!confirmed) {
+        return {
+          success: false,
+          node,
+          message: `❌ ${actionName} requires Auto Layout. Operation cancelled.`
+        };
+      }
 
       try {
         enableAutoLayout(frameNode);
@@ -110,7 +133,6 @@ const checkAndFixNodeRequirements = async (
       }
     }
 
-    // Case 3: Frame with Auto Layout - all good!
     return {
       success: true,
       node,
@@ -118,7 +140,6 @@ const checkAndFixNodeRequirements = async (
     };
   }
 
-  // For other actions, current node is fine
   return {
     success: true,
     node,
@@ -185,17 +206,14 @@ const checkScopeCompatibility = (
 ): { isCompatible: boolean; warning: string } => {
   const scopes = variable.scopes;
 
-  // Если есть ALL_SCOPES, то все совместимо
   if (scopes.includes('ALL_SCOPES')) {
     return { isCompatible: true, warning: '' };
   }
 
-  // Для spacing это нормально
   if (action === 'spaceBetween' && scopes.includes('GAP')) {
     return { isCompatible: true, warning: '' };
   }
 
-  // Для padding с GAP scope - предупреждение
   if (action.includes('padding') && scopes.includes('GAP')) {
     return {
       isCompatible: true,
@@ -336,7 +354,7 @@ export const applyNumberVariable = async (
         }
         break;
       default:
-        resultMessage = '�� Unknown action.';
+        resultMessage = '🚨 Unknown action.';
     }
   }
 

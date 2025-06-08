@@ -225,15 +225,18 @@ The plugin supports applying number variables to:
 
 ### Smart Auto-Fix Features
 
-- **Auto Frame Creation**: If you try to apply spacing/padding to a non-frame element, the plugin automatically wraps it in a frame
-- **Auto Layout Enabling**: Missing Auto Layout? The plugin enables it automatically with optimal direction
+- **Interactive Frame Creation**: Plugin asks before wrapping non-frame elements in frames for spacing/padding
+- **Confirmation Dialogs**: User-friendly modal dialogs for Auto Layout and frame creation decisions
+- **Auto Layout Enabling**: Plugin asks before enabling Auto Layout with optimal direction detection
 - **Intelligent Direction**: Analyzes child element positions to choose the best Auto Layout direction
 - **Automatic Stroke**: When applying stroke width, a dark stroke is automatically created if none exists
 
 ### Important Notes
 
+- **User Control**: All structural changes (frame creation, Auto Layout enabling) require user confirmation
 - **Scope Compatibility**: For best results with padding, use variables with `ALL_SCOPES` instead of `GAP` scope
-- **Selection Updates**: When frames are created automatically, selection updates to the new frame
+- **Selection Updates**: When frames are created, selection updates to the new frame
+- **Cancellation**: You can always cancel operations before they're applied
 
 ## Contributing
 

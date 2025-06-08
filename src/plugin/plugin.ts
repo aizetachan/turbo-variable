@@ -1,6 +1,7 @@
 import { loadAllData } from '@plugin/loadAllData';
 import { applyColorVariable } from '@plugin/applyColorVariable';
 import { applyNumberVariable } from '@plugin/applyNumberVariable';
+import { confirmationManager } from '@plugin/confirmationManager';
 
 figma.showUI(__html__, { width: 240, height: 664 });
 
@@ -59,6 +60,8 @@ figma.ui.onmessage = async (msg) => {
   } else if (msg.type === 'reload-variables') {
     await loadAllData();
     figma.notify('🔄 Variables reloaded.');
+  } else if (msg.type === 'confirmation-response') {
+    confirmationManager.handleResponse(msg.id, msg.confirmed);
   }
 };
 

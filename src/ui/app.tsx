@@ -4,7 +4,8 @@ import FilterInput from './components/FilterInput';
 import CollectionsSelector from './components/CollectionsSelector';
 import VariableList from './components/VariableList';
 import LoadingSpinner from './components/LoadingSpinner';
-import { VariableData } from '@ui/types';
+import { ConfirmationModal } from './components/ConfirmationModal';
+import { VariableData, ConfirmationRequest, ConfirmationResponse } from '@ui/types';
 import './App.css';
 
 const App: React.FC = () => {
@@ -15,6 +16,7 @@ const App: React.FC = () => {
   const [collections, setCollections] = useState<string[]>([]);
   const [selectedCollection, setSelectedCollection] = useState('All collections');
   const [loading, setLoading] = useState(false);
+  const [confirmationRequest, setConfirmationRequest] = useState<ConfirmationRequest | null>(null);
 
   const filterValueRef = useRef(filterValue);
   const selectedCollectionRef = useRef(selectedCollection);
@@ -85,6 +87,18 @@ const App: React.FC = () => {
     parent.postMessage({ pluginMessage: { type: 'reload-variables' } }, '*');
   };
 
+  const handleConfirmation = (confirmed: boolean) => {
+    if (confirmationRequest) {
+      const response: ConfirmationResponse = {
+        id: confirmationRequest.id,
+        confirmed
+      };
+
+      parent.postMessage({ pluginMessage: { type: 'confirmation-response', ...response } }, '*');
+      setConfirmationRequest(null);
+    }
+  };
+
   useEffect(() => {
     window.onmessage = (event) => {
       const { pluginMessage } = event.data;
@@ -104,6 +118,10 @@ const App: React.FC = () => {
           filterValueRef.current,
           activeTab
         );
+      }
+
+      if (pluginMessage.type === 'show-confirmation') {
+        setConfirmationRequest(pluginMessage as ConfirmationRequest);
       }
     };
   }, [activeTab]);
@@ -143,6 +161,15 @@ const App: React.FC = () => {
         collection={selectedCollection}
       />
       {loading && <LoadingSpinner />}
+      <ConfirmationModal
+        isOpen={!!confirmationRequest}
+        title={confirmationRequest?.title || ''}
+        message={confirmationRequest?.message || ''}
+        confirmText={confirmationRequest?.confirmText}
+        cancelText={confirmationRequest?.cancelText}
+        onConfirm={() => handleConfirmation(true)}
+        onCancel={() => handleConfirmation(false)}
+      />
     </div>
   );
 };
