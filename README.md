@@ -230,6 +230,15 @@ The plugin supports applying number variables to:
 - **Auto Layout Enabling**: Plugin asks before enabling Auto Layout with optimal direction detection
 - **Intelligent Direction**: Analyzes child element positions to choose the best Auto Layout direction
 - **Automatic Stroke**: When applying stroke width, a dark stroke is automatically created if none exists
+- **History System**: Full undo/redo support with Cmd+Z/Ctrl+Z and Cmd+Y/Ctrl+Y keyboard shortcuts
+
+### History & Undo System
+
+- **Plugin-Level History**: Each variable application is saved as a separate action in plugin history
+- **Keyboard Shortcuts**: Use Cmd+Z/Ctrl+Z to undo and Cmd+Y/Ctrl+Y (or Cmd+Shift+Z) to redo
+- **Independent from Figma**: Plugin history is separate from Figma's undo system to allow granular control
+- **State Restoration**: Full restoration of node properties, bound variables, and layout settings
+- **Smart Tracking**: Only successful operations are saved to history
 
 ### Important Notes
 

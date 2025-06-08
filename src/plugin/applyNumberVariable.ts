@@ -1,5 +1,7 @@
 import { isValidScopeForProperty } from '@plugin/isValidScopeForProperty';
 import { confirmationManager } from '@plugin/confirmationManager';
+import { historyManager } from '@plugin/historyManager';
+import { HistoryAction } from '@plugin/historyTypes';
 
 /**
  * Apply number variables to Figma nodes with enhanced functionality:
@@ -232,6 +234,9 @@ export const applyNumberVariable = async (
 ) => {
   let resultMessage = '';
 
+  // Захватываем состояние до изменения для истории
+  const beforeStates = nodes.map((node) => historyManager.captureNodeState(node));
+
   for (const node of nodes) {
     const isValidScope = await isValidScopeForProperty(variable, action, node);
 
@@ -356,6 +361,27 @@ export const applyNumberVariable = async (
       default:
         resultMessage = '🚨 Unknown action.';
     }
+  }
+
+  // Захватываем состояние после изменения и сохраняем в историю
+  if (resultMessage.includes('✅')) {
+    const afterStates = nodes.map((node) => historyManager.captureNodeState(node));
+
+    const actionDescription = `Apply ${variable.name} (${action})`;
+
+    const historyAction: HistoryAction = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      type: 'apply-variable',
+      timestamp: Date.now(),
+      description: actionDescription,
+      variableId: variable.id,
+      variableType: 'number',
+      action,
+      beforeState: beforeStates,
+      afterState: afterStates
+    };
+
+    historyManager.addAction(historyAction);
   }
 
   figma.notify(resultMessage);

@@ -17,6 +17,7 @@ const App: React.FC = () => {
   const [selectedCollection, setSelectedCollection] = useState('All collections');
   const [loading, setLoading] = useState(false);
   const [confirmationRequest, setConfirmationRequest] = useState<ConfirmationRequest | null>(null);
+  const [historyInfo, setHistoryInfo] = useState({ canUndo: false, canRedo: false });
 
   const filterValueRef = useRef(filterValue);
   const selectedCollectionRef = useRef(selectedCollection);
@@ -123,6 +124,10 @@ const App: React.FC = () => {
       if (pluginMessage.type === 'show-confirmation') {
         setConfirmationRequest(pluginMessage as ConfirmationRequest);
       }
+
+      if (pluginMessage.type === 'history-changed') {
+        setHistoryInfo(pluginMessage.historyInfo);
+      }
     };
   }, [activeTab]);
 
@@ -141,7 +146,32 @@ const App: React.FC = () => {
 
     document.body.classList.add(isDark ? 'dark' : 'light');
     mediaQuery.addEventListener('change', handleThemeChange);
-  }, []);
+
+    // Обработчик клавиатурных сочетаний для undo/redo
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+
+      if (ctrlKey && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (historyInfo.canUndo) {
+          parent.postMessage({ pluginMessage: { type: 'undo' } }, '*');
+        }
+      } else if (ctrlKey && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        if (historyInfo.canRedo) {
+          parent.postMessage({ pluginMessage: { type: 'redo' } }, '*');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleThemeChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [historyInfo]);
 
   return (
     <div id="app-root">

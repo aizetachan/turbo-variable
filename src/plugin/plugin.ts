@@ -2,6 +2,7 @@ import { loadAllData } from '@plugin/loadAllData';
 import { applyColorVariable } from '@plugin/applyColorVariable';
 import { applyNumberVariable } from '@plugin/applyNumberVariable';
 import { confirmationManager } from '@plugin/confirmationManager';
+import { historyManager } from '@plugin/historyManager';
 
 figma.showUI(__html__, { width: 240, height: 664 });
 
@@ -62,6 +63,10 @@ figma.ui.onmessage = async (msg) => {
     figma.notify('🔄 Variables reloaded.');
   } else if (msg.type === 'confirmation-response') {
     confirmationManager.handleResponse(msg.id, msg.confirmed);
+  } else if (msg.type === 'undo') {
+    await historyManager.undo();
+  } else if (msg.type === 'redo') {
+    await historyManager.redo();
   }
 };
 

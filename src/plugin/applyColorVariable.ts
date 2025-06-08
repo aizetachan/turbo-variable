@@ -1,4 +1,6 @@
 import { isValidScopeForProperty } from '@plugin/isValidScopeForProperty';
+import { historyManager } from '@plugin/historyManager';
+import { HistoryAction } from '@plugin/historyTypes';
 
 export async function applyColorVariable(
   nodes: ReadonlyArray<SceneNode>,
@@ -8,6 +10,9 @@ export async function applyColorVariable(
   if (nodes.length > 0 && variable) {
     try {
       let applied = false;
+
+      // Захватываем состояние до изменения для истории
+      const beforeStates = nodes.map((node) => historyManager.captureNodeState(node));
 
       for (const node of nodes) {
         const isValidScope = await isValidScopeForProperty(variable, action, node);
@@ -70,6 +75,24 @@ export async function applyColorVariable(
       }
 
       if (applied) {
+        // Захватываем состояние после изменения и сохраняем в историю
+        const afterStates = nodes.map((node) => historyManager.captureNodeState(node));
+
+        const actionDescription = `Apply ${variable.name} (${action})`;
+
+        const historyAction: HistoryAction = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          type: 'apply-variable',
+          timestamp: Date.now(),
+          description: actionDescription,
+          variableId: variable.id,
+          variableType: 'color',
+          action,
+          beforeState: beforeStates,
+          afterState: afterStates
+        };
+
+        historyManager.addAction(historyAction);
         figma.notify('✅ Variable applied correctly.');
       } else {
         figma.notify('🚫 Scope limitation.');
